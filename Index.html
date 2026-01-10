@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifePet Ultimate: All-in-One</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --xp: #00d2d3; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; transition: 0.5s; }
+        .app-container { width: 100%; max-width: 900px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
+        
+        /* Pet Weergave */
+        .pet-stage { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; border-radius: 20px; margin: 15px 0; overflow: hidden; border: 2px solid #eee; }
+        #pet-main { font-size: 80px; z-index: 2; transition: 0.3s; }
+        #pet-accessory { position: absolute; font-size: 40px; top: 20px; z-index: 3; }
+        .lvl-tag { background: var(--p); color: white; padding: 4px 12px; border-radius: 10px; font-weight: bold; }
+
+        /* Bars */
+        .bar-bg { background: #eee; height: 10px; border-radius: 5px; margin: 8px 0; overflow: hidden; }
+        .bar-fill { height: 100%; width: 50%; transition: 0.5s; }
+
+        /* Tabs & Nav */
+        .nav-btns { display: flex; gap: 10px; margin-bottom: 15px; }
+        .nav-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; background: #ddd; }
+        .nav-btns button.active { background: var(--p); color: white; }
+        .tab-content { display: none; }
+        .active-tab { display: block; }
+
+        /* Taken & Shop */
+        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .shop-item { padding: 10px; border: 1px solid #eee; border-radius: 10px; text-align: center; cursor: pointer; }
+        .shop-item:hover { background: #f9f9f9; }
+
+        @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="left-col">
+        <div class="card" style="text-align:center;">
+            <span class="lvl-tag">LVL <span id="lvl">1</span></span>
+            <div class="pet-stage">
+                <div id="pet-accessory"></div>
+                <div id="pet-main">🥚</div>
+                <div id="season-decor" style="position:absolute; bottom:10px; width:100%; font
