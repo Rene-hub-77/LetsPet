@@ -3,237 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet v1.80 - Stabiele Editie</title>
+    <title>LifePet v2.0 - Offline Only</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --home: #00b894; --energy: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; overflow-x: hidden; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 11px; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --energy: #3498db; --red: #ff7675; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; }
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; }
+        .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 12px; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         .page { display: none; padding: 20px; animation: fadeIn 0.2s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; }
-        .btn-p { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .box { background: #f9f9f9; padding: 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .box { background: #f9f9f9; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; }
         .box.selected { border-color: var(--p); background: #f3f0ff; }
-        .stat-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 5px 0 10px 0; }
-        .energy-fill { height: 100%; background: var(--energy); transition: 0.5s; }
-        input[type="text"] { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
-        .overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; color: white; }
+        .stat-bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+        .fill { height: 100%; background: var(--energy); transition: 0.3s; }
+        input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 10px; }
+        .overlay { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; flex-direction: column; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="auth-overlay" class="overlay">
-    <div style="background: white; padding: 30px; border-radius: 30px; width: 100%; max-width: 300px; text-align: center; color: #333;">
-        <h2 style="color: var(--p);">LifePet Login</h2>
-        <input type="email" id="email" placeholder="E-mail" style="margin-bottom: 10px;">
-        <input type="password" id="password" placeholder="Wachtwoord" style="margin-bottom: 15px;">
-        <button class="btn-p" onclick="handleAuth()">START</button>
+<div id="setup" class="overlay hidden">
+    <h2 style="color:var(--p)">Welkom bij LifePet</h2>
+    <p>Kies je maatje om te beginnen</p>
+    <input type="text" id="pet-name" placeholder="Naam van je pet...">
+    <div class="grid" style="font-size: 40px; margin: 20px 0;">
+        <div class="box" onclick="selectEmoji('🐶', this)">🐶</div>
+        <div class="box" onclick="selectEmoji('🐱', this)">🐱</div>
+        <div class="box" onclick="selectEmoji('🐲', this)">🐲</div>
+        <div class="box" onclick="selectEmoji('🦄', this)">🦄</div>
+        <div class="box" onclick="selectEmoji('🐼', this)">🐼</div>
+        <div class="box" onclick="selectEmoji('🦊', this)">🦊</div>
     </div>
+    <button class="btn" onclick="startApp()">START AVONTUUR</button>
 </div>
 
-<div id="adopt-overlay" class="overlay hidden" style="background: white; flex-direction: column; color: #333;">
-    <h2>Adopteer je Pet</h2>
-    <input type="text" id="new-name" placeholder="Geef een naam..." style="text-align: center; margin-bottom: 20px;">
-    <div class="grid">
-        <div class="box" onclick="pick('🐶', this)">🐶</div>
-        <div class="box" onclick="pick('🐱', this)">🐱</div>
-        <div class="box" onclick="pick('🐲', this)">🐲</div>
-        <div class="box" onclick="pick('🦄', this)">🦄</div>
-        <div class="box" onclick="pick('🐼', this)">🐼</div>
-        <div class="box" onclick="pick('🦁', this)">🦁</div>
-    </div>
-    <button class="btn-p" style="margin-top: 30px; max-width: 200px;" onclick="confirmPet()">ADOPTEER</button>
-</div>
-
-<div id="game-ui" class="hidden">
-    <div id="page-pet" class="page active">
+<div id="main-ui">
+    <div id="p-status" class="page active">
         <div class="card" style="text-align: center;">
-            <div id="pet-view" style="font-size: 80px; margin: 15px 0;">🐾</div>
-            <h2 id="name-label" style="margin: 0;">Pet</h2>
-            <div style="text-align: left; margin-top: 15px;">
+            <div id="view-emoji" style="font-size: 100px; margin: 20px 0;">🐾</div>
+            <h2 id="view-name" style="margin:0">Pet</h2>
+            <div style="text-align: left; margin-top: 20px;">
                 <small>Energie ⚡</small>
-                <div class="stat-bar"><div id="e-fill" class="energy-fill" style="width: 100%;"></div></div>
+                <div class="stat-bar"><div id="bar-e" class="fill" style="width: 100%;"></div></div>
             </div>
-            <div style="background: var(--gold); color: white; padding: 10px; border-radius: 15px; font-weight: bold;">💰 <span class="coin-val">0</span> Munten</div>
+            <div style="background: var(--gold); color: white; padding: 12px; border-radius: 15px; font-weight: bold; margin-top: 10px;">
+                💰 <span id="view-coins">0</span> Munten
+            </div>
         </div>
         <div class="card">
-            <b>Voorraadkast (Eten):</b>
-            <div id="inventory-ui" class="grid" style="margin-top: 10px;"></div>
+            <b>Je Voorraadkast:</b>
+            <div id="view-inv" class="grid" style="margin-top: 10px;"></div>
         </div>
     </div>
 
-    <div id="page-planner" class="page">
+    <div id="p-planner" class="page">
         <h3>📅 Weekschema</h3>
-        <div id="planner-ui"></div>
-        <button class="btn-p" onclick="savePlan()">SCHEMA OPSLAAN</button>
+        <div id="planner-inputs"></div>
+        <button class="btn" onclick="saveData()">OPSLAAN</button>
         <hr>
         <h4>Taken van Vandaag</h4>
-        <div id="today-ui"></div>
+        <div id="today-tasks"></div>
     </div>
 
-    <div id="page-shop" class="page">
-        <h3>🛍️ Winkel</h3>
-        <p><b>Markt (Eten)</b></p>
-        <div id="market-ui" class="grid"></div>
-        <p><b>Boutique (Kleding)</b></p>
-        <div id="boutique-ui" class="grid"></div>
+    <div id="p-shop" class="page">
+        <h3>🛍️ De Markt</h3>
+        <div class="card">
+            <p><b>Eten & Drinken</b></p>
+            <div class="grid">
+                <div class="box" onclick="buy('apple', 10, '🍎')">🍎<br><small>💰10</small></div>
+                <div class="box" onclick="buy('pizza', 40, '🍕')">🍕<br><small>💰40</small></div>
+                <div class="box" onclick="buy('cookie', 5, '🍪')">🍪<br><small>💰5</small></div>
+            </div>
+        </div>
+        <p style="font-size: 12px; color: #888; text-align: center;">Meer items komen binnenkort!</p>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="nav('pet', this)"><div>🐾</div>Status</div>
-        <div class="nav-item" onclick="nav('planner', this)"><div>📅</div>Schema</div>
+    <div class="nav">
+        <div class="nav-item active" onclick="nav('status', this)"><div>🐾</div>Status</div>
+        <div class="nav-item" onclick="nav('planner', this)"><div>📅</div>Planner</div>
         <div class="nav-item" onclick="nav('shop', this)"><div>🛍️</div>Winkel</div>
-        <div class="nav-item" onclick="location.reload()"><div>🚪</div>Uit</div>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const config = { apiKey: "AIzaSyCNeVLw0NYgKQrpBC7MuArQAJ5Kli9Xd3o", authDomain: "petlife-68738.firebaseapp.com", projectId: "petlife-68738", appId: "1:942954717479:web:6a8fafe8c7b17d00444902" };
-    const app = initializeApp(config);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const DAYS = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
-    const FOODS = [{id:'apple', i:'🍎', p:10, e:20}, {id:'pizza', i:'🍕', p:50, e:60}];
-    const ACCS = [{id:0, i:'🎩', p:100}, {id:1, i:'👑', p:500}];
-
-    window.state = JSON.parse(localStorage.getItem('lifepet_v180')) || { coins: 150, pets: [], schedule: {}, inventory: {}, completed: [] };
-    let selectedEmoji = "";
-
-    onAuthStateChanged(auth, async user => {
-        if(user) {
-            document.getElementById('auth-overlay').classList.add('hidden');
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if(snap.exists()) state = snap.data();
-            
-            if(state.pets.length === 0) {
-                document.getElementById('adopt-overlay').classList.remove('hidden');
-            } else {
-                document.getElementById('game-ui').classList.remove('hidden');
-                render();
-            }
-            onSnapshot(doc(db, "users", user.uid), d => { if(d.exists()) { state = d.data(); render(); }});
-        }
-    });
-
-    window.handleAuth = () => {
-        const e = document.getElementById('email').value, p = document.getElementById('password').value;
-        signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
+<script>
+    const DAYS = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+    let state = JSON.parse(localStorage.getItem('lifepet_v2')) || {
+        setup: false,
+        name: "",
+        emoji: "🐾",
+        coins: 100,
+        energy: 100,
+        inventory: {},
+        schedule: {},
+        completed: []
     };
 
-    window.pick = (emoji, el) => {
-        selectedEmoji = emoji;
+    let tempEmoji = "";
+
+    function selectEmoji(e, el) {
+        tempEmoji = e;
         document.querySelectorAll('.box').forEach(b => b.classList.remove('selected'));
         el.classList.add('selected');
-    };
+    }
 
-    window.confirmPet = () => {
-        const name = document.getElementById('new-name').value;
-        if(!name || !selectedEmoji) return alert("Kies een naam en dier!");
-        state.pets = [{ name, type: selectedEmoji, energy: 100 }];
-        document.getElementById('adopt-overlay').classList.add('hidden');
-        document.getElementById('game-ui').classList.remove('hidden');
-        sync();
-    };
+    function startApp() {
+        const name = document.getElementById('pet-name').value;
+        if(!name || !tempEmoji) return alert("Vul een naam in en kies een dier!");
+        state.name = name;
+        state.emoji = tempEmoji;
+        state.setup = true;
+        saveData();
+        document.getElementById('setup').classList.add('hidden');
+        render();
+    }
 
-    window.nav = (id, el) => {
+    function nav(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
-        if(el) el.classList.add('active');
+        document.getElementById('p-' + id).classList.add('active');
+        el.classList.add('active');
         render();
-    };
+    }
 
-    window.savePlan = () => {
-        DAYS.forEach(d => {
-            const val = document.getElementById('in-' + d).value;
-            state.schedule[d] = val.split(',').map(s => s.trim()).filter(s => s !== "");
-        });
-        sync();
-        alert("Schema opgeslagen!");
-    };
+    function buy(id, price, icon) {
+        if(state.coins >= price) {
+            state.coins -= price;
+            state.inventory[icon] = (state.inventory[icon] || 0) + 1;
+            saveData();
+            render();
+        } else { alert("Niet genoeg munten!"); }
+    }
 
-    window.buyFood = (f) => {
-        if(state.coins >= f.p) {
-            state.coins -= f.p;
-            state.inventory[f.id] = (state.inventory[f.id] || 0) + 1;
-            sync();
+    function feed(icon) {
+        if(state.inventory[icon] > 0) {
+            state.inventory[icon]--;
+            state.energy = Math.min(100, state.energy + 20);
+            saveData();
+            render();
         }
-    };
+    }
 
-    window.feed = (id) => {
-        if(state.inventory[id] > 0) {
-            state.inventory[id]--;
-            state.pets[0].energy = Math.min(100, state.pets[0].energy + 30);
-            sync();
+    function completeTask(task) {
+        const key = task + new Date().toDateString();
+        if(state.energy >= 10 && !state.completed.includes(key)) {
+            state.completed.push(key);
+            state.coins += 20;
+            state.energy -= 10;
+            saveData();
+            render();
+        } else if(state.energy < 10) { alert("Je pet is te moe! Geef hem eten."); }
+    }
+
+    function saveData() {
+        if(state.setup) {
+            DAYS.forEach(d => {
+                const el = document.getElementById('in-' + d);
+                if(el) state.schedule[d] = el.value.split(',').map(s => s.trim()).filter(s => s !== "");
+            });
         }
-    };
-
-    window.doTask = (t) => {
-        const k = t + new Date().toDateString();
-        if(state.pets[0].energy >= 10 && !state.completed.includes(k)) {
-            state.completed.push(k);
-            state.coins += 25;
-            state.pets[0].energy -= 10;
-            sync();
-        } else if(state.pets[0].energy < 10) alert("Pet is te moe! Geef eten.");
-    };
-
-    async function sync() {
-        localStorage.setItem('lifepet_v180', JSON.stringify(state));
-        if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state);
-        render();
+        localStorage.setItem('lifepet_v2', JSON.stringify(state));
     }
 
     function render() {
-        if(state.pets.length === 0) return;
-        const pet = state.pets[0];
-        const today = DAYS[(new Date().getDay() + 6) % 7];
+        if(!state.setup) {
+            document.getElementById('setup').classList.remove('hidden');
+            return;
+        }
 
-        document.querySelectorAll('.coin-val').forEach(el => el.innerText = state.coins);
-        document.getElementById('pet-view').innerText = pet.type;
-        document.getElementById('name-label').innerText = pet.name;
-        document.getElementById('e-fill').style.width = pet.energy + "%";
+        document.getElementById('view-name').innerText = state.name;
+        document.getElementById('view-emoji').innerText = state.emoji;
+        document.getElementById('view-coins').innerText = state.coins;
+        document.getElementById('bar-e').style.width = state.energy + "%";
 
-        // Render Planner
-        const pUI = document.getElementById('planner-ui');
-        pUI.innerHTML = "";
-        DAYS.forEach(d => {
-            const val = state.schedule[d] ? state.schedule[d].join(', ') : "";
-            pUI.innerHTML += `<div class="card"><b>${d}</b><input type="text" id="in-${d}" value="${val}" placeholder="Bv: Lopen, Afwassen"></div>`;
-        });
+        // Render Planner Inputs
+        const pInput = document.getElementById('planner-inputs');
+        if(pInput.innerHTML === "") {
+            DAYS.forEach(d => {
+                const val = state.schedule[d] ? state.schedule[d].join(', ') : "";
+                pInput.innerHTML += `<div><b>${d}</b><input type="text" id="in-${d}" value="${val}" placeholder="Bv: Wandelen, Afwassen"></div>`;
+            });
+        }
 
-        // Render Today
-        const tUI = document.getElementById('today-ui');
-        tUI.innerHTML = "";
+        // Render Today's Tasks
+        const today = DAYS[new Date().getDay()];
+        const tDiv = document.getElementById('today-tasks');
+        tDiv.innerHTML = "";
         (state.schedule[today] || []).forEach(t => {
             const done = state.completed.includes(t + new Date().toDateString());
-            tUI.innerHTML += `<div class="card" onclick="doTask('${t}')" style="opacity:${done?0.5:1}"><b>${t}</b> ${done ? '✅' : ''}</div>`;
+            tDiv.innerHTML += `<div class="card" onclick="completeTask('${t}')" style="opacity:${done?0.5:1}"><b>${t}</b> ${done ? '✅' : '💰'}</div>`;
         });
 
-        // Render Shop
-        const mUI = document.getElementById('market-ui'); mUI.innerHTML = "";
-        FOODS.forEach(f => mUI.innerHTML += `<div class="box" onclick='buyFood(${JSON.stringify(f)})'>${f.i}<br><small>💰${f.p}</small></div>`);
-        
-        const bUI = document.getElementById('boutique-ui'); bUI.innerHTML = "";
-        ACCS.forEach(a => bUI.innerHTML += `<div class="box">${a.i}<br><small>💰${a.p}</small></div>`);
-
         // Render Inventory
-        const iUI = document.getElementById('inventory-ui'); iUI.innerHTML = "";
-        for(let id in state.inventory) if(state.inventory[id] > 0) {
-            const f = FOODS.find(x => x.id === id);
-            iUI.innerHTML += `<div class="box" onclick="feed('${id}')">${f.i} x${state.inventory[id]}</div>`;
+        const iDiv = document.getElementById('view-inv');
+        iDiv.innerHTML = "";
+        for(let icon in state.inventory) {
+            if(state.inventory[icon] > 0) {
+                iDiv.innerHTML += `<div class="box" onclick="feed('${icon}')">${icon}<br><small>x${state.inventory[icon]}</small></div>`;
+            }
         }
     }
+
+    // Initial Start
+    render();
 </script>
 </body>
 </html>
