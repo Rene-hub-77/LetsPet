@@ -3,37 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LifePet v9.4 - Final Masterpiece</title>
+    <title>LifePet v10.0 - Content Update</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --night: #2d3436; --gold: #f1c40f; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --night: #2d3436; --gold: #f1c40f; --green: #00b894; --blue: #0984e3; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; color: #333; transition: 0.5s; }
         body.night-mode { background: var(--night); color: white; }
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: left; color: #333; position: relative; }
+        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: left; color: #333; }
         .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; border-top: 2px solid #ddd; z-index: 1000; }
         .nav div { flex: 1; padding: 15px; cursor: pointer; font-weight: bold; text-align: center; font-size: 20px; }
         .page { display: none; }
         .active { display: block; }
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
         input { padding: 12px; width: 100%; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .playground { height: 200px; background: linear-gradient(#87ceeb, #90ee90); border-radius: 20px; position: relative; overflow: hidden; border: 2px solid white; }
-        body.night-mode .playground { background: linear-gradient(#0f0c29, #302b63); }
-        .pg-pet { position: absolute; font-size: 45px; transition: 2s ease-in-out; }
-        .box { display: inline-block; padding: 12px; background: #eee; margin: 5px; border-radius: 12px; cursor: pointer; font-size: 25px; }
-        .task-item { background: #f3f0ff; padding: 15px; border-radius: 15px; margin-top: 10px; border: 2px solid var(--p); cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; }
-        .task-item:active { transform: scale(0.95); }
-        .certificate { border: 5px double var(--gold); padding: 20px; background: #fffdf0; color: #444; border-radius: 10px; margin-top: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .box { background: #f1f2f6; padding: 10px; border-radius: 12px; cursor: pointer; text-align: center; border: 1px solid #dfe4ea; }
+        .tag { font-size: 10px; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin: 2px; display: inline-block; background: #eee; border: 1px solid #ccc; }
+        .playground { height: 180px; background: linear-gradient(#87ceeb, #90ee90); border-radius: 20px; position: relative; overflow: hidden; }
+        .pg-pet { position: absolute; font-size: 40px; transition: 2s; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<audio id="snd-pop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-<audio id="snd-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
-
 <div id="auth-page">
     <div class="card" style="text-align: center;">
-        <h2 style="color: var(--p);">LifePet Cloud 🐾</h2>
-        <input type="email" id="emailIn" placeholder="E-mailadres">
+        <h2 style="color: var(--p);">LifePet v10.0 🐾</h2>
+        <input type="email" id="emailIn" placeholder="E-mail">
         <input type="password" id="passIn" placeholder="Wachtwoord">
         <button class="btn" onclick="handleAuth()">START</button>
     </div>
@@ -41,13 +36,9 @@
 
 <div id="setup-page" class="hidden">
     <div class="card" style="text-align: center;">
-        <h2>Adopteer een Pet</h2>
+        <h2>Adopteer je maatje</h2>
         <input type="text" id="nameInput" placeholder="Naam...">
-        <div style="margin: 15px 0;">
-            <div onclick="setPet('🐶', this)" class="box">🐶</div>
-            <div onclick="setPet('🐲', this)" class="box">🐲</div>
-            <div onclick="setPet('🐱', this)" class="box">🐱</div>
-        </div>
+        <div class="grid" id="petChoices"></div>
         <button class="btn" onclick="confirmSetup()">BEGIN</button>
     </div>
 </div>
@@ -56,48 +47,60 @@
     <div id="page1" class="page active">
         <div class="card" style="text-align: center;">
             <div id="ui-evo" style="font-size: 10px; font-weight: bold; color: var(--p);">EI-FASE</div>
-            <h1 id="petEmoji" style="font-size: 100px; margin: 10px 0;">🥚</h1>
-            <h2 id="petName" style="margin:0">Pet</h2>
+            <div style="font-size: 80px; margin: 10px 0; position: relative;">
+                <div id="ui-acc" style="position: absolute; top: -10px; width: 100%; font-size: 40px;"></div>
+                <div id="ui-emoji">🥚</div>
+            </div>
+            <h2 id="ui-name" style="margin:0">Naam</h2>
             <div style="background: var(--gold); color: white; padding: 10px; border-radius: 15px; font-weight: bold; margin-top: 10px;">💰 <span id="coins">0</span></div>
             <div style="text-align: left; margin-top: 15px;">
-                <small>Energie ⚡</small><div style="height:10px; background:#ddd; border-radius:5px;"><div id="energy-bar" style="height:100%; background:var(--p); width:100%; transition:0.5s;"></div></div>
+                <small>Energie ⚡</small>
+                <div style="height:8px; background:#ddd; border-radius:4px;"><div id="energy-bar" style="height:100%; background:var(--p); width:100%;"></div></div>
             </div>
         </div>
-
-        <div id="cert-box" class="card hidden">
-            <div class="certificate">
-                <h3 style="margin:0">📜 Certificaat</h3>
-                <p>Hierbij is <b><span id="cert-name"></span></b> officieel geboren!</p>
-                <small id="cert-date"></small>
-            </div>
-        </div>
-
-        <div class="card"><h3>Taken Vandaag</h3><div id="todayTaskContainer"></div></div>
-    </div>
-
-    <div id="page4" class="page">
-        <div class="card"><h3>🎡 Speeltuin</h3><div class="playground" id="pg-container"></div></div>
+        <div class="card"><b>Rugzak:</b><div id="ui-inv" class="grid" style="margin-top:10px;"></div></div>
     </div>
 
     <div id="page2" class="page">
         <div class="card">
             <h3>📅 Planner</h3>
-            <div id="plannerInputs"></div>
-            <button class="btn" onclick="savePlanner()">OPSLAAN</button>
+            <div id="planner-ui"></div>
+            <button class="btn" style="background:var(--green);" onclick="savePlanner()">OPSLAAN</button>
         </div>
+        <div class="card">
+            <p><b>Quick-Add:</b></p>
+            <small>Huishouden:</small><br>
+            <div id="quick-h"></div>
+            <small>Bewegen:</small><br>
+            <div id="quick-b"></div>
+        </div>
+        <div class="card"><h4>Vandaag:</h4><div id="today-tasks"></div></div>
     </div>
-    
+
     <div id="page3" class="page">
-        <div class="card" style="text-align: center;">
-            <h3>🛍️ Winkel</h3>
-            <div class="box" onclick="buy('🍎', 10)">🍎<br><small>10</small></div>
-            <div class="box" onclick="buy('🍕', 40)">🍕<br><small>40</small></div>
+        <h3>🛍️ Winkel</h3>
+        <div class="card">
+            <p><b>Markt (Energie)</b></p>
+            <div class="grid">
+                <div class="box" onclick="buy('🍎',10)">🍎 10</div>
+                <div class="box" onclick="buy('🥗',20)">🥗 20</div>
+                <div class="box" onclick="buy('🍕',50)">🍕 50</div>
+                <div class="box" onclick="buy('💧',5)">💧 5</div>
+            </div>
+        </div>
+        <div class="card">
+            <p><b>Boutique (Stijl)</b></p>
+            <div class="grid">
+                <div class="box" onclick="buy('🎩',100,true)">🎩 100</div>
+                <div class="box" onclick="buy('👑',500,true)">👑 500</div>
+                <div class="box" onclick="buy('🕶️',150,true)">🕶️ 150</div>
+                <div class="box" onclick="buy('🎀',80,true)">🎀 80</div>
+            </div>
         </div>
     </div>
 
     <div class="nav">
         <div onclick="showPage('page1')">🐾</div>
-        <div onclick="showPage('page4')">🎡</div>
         <div onclick="showPage('page2')">📅</div>
         <div onclick="showPage('page3')">🛍️</div>
     </div>
@@ -113,107 +116,30 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let state = { setup: false, name: "", emoji: "", coins: 0, energy: 100, schedule: {}, completedToday: false, born: false };
+    const DAYS = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+    const PETS = ["🐶","🐱","🐲","🦊","🐼","🦁"];
+    const H_TASKS = ["Afstoffen","Stofzuigen","Dweilen","Badkamer","Keuken","Ramen","Wasgoed","Planten"];
+    const B_TASKS = ["Wandelen","Hardlopen","Yoga","Fietsen","Krachttraining","Trappen","Strekken"];
+
+    let st = { setup: false, name: "", type: "🐶", coins: 0, energy: 100, inv: {}, plan: {}, done: [], acc: "" };
 
     onAuthStateChanged(auth, async user => {
         if(user) {
             const snap = await getDoc(doc(db, "users", user.uid));
-            if(snap.exists()) { state = snap.data(); startApp(); } 
-            else { document.getElementById('auth-page').classList.add('hidden'); document.getElementById('setup-page').classList.remove('hidden'); }
-            onSnapshot(doc(db, "users", user.uid), d => { if(d.exists()){ state = d.data(); updateUI(); }});
+            if(snap.exists()) { st = snap.data(); startApp(); } 
+            else { showSetup(); }
+            onSnapshot(doc(db, "users", user.uid), d => { if(d.exists()){ st = d.data(); render(); }});
         }
     });
 
-    window.handleAuth = () => {
-        const e = document.getElementById('emailIn').value, p = document.getElementById('passIn').value;
-        signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
-    };
-
-    window.setPet = (e, el) => { window.chosenEmoji = e; document.querySelectorAll('.box').forEach(b => b.style.background = "#eee"); el.style.background = "#d1d8ff"; };
+    function showSetup() {
+        document.getElementById('auth-page').classList.add('hidden');
+        document.getElementById('setup-page').classList.remove('hidden');
+        const grid = document.getElementById('petChoices');
+        PETS.forEach(p => grid.innerHTML += `<div class="box" onclick="window.selP='${p}';alert('Gekozen: ${p}')">${p}</div>`);
+    }
 
     window.confirmSetup = () => {
-        state.name = document.getElementById('nameInput').value;
-        state.emoji = window.chosenEmoji;
-        if(!state.name || !state.emoji) return alert("Kies naam en pet!");
-        state.setup = true; sync(); startApp();
-    };
-
-    function startApp() {
-        document.getElementById('auth-page').classList.add('hidden');
-        document.getElementById('setup-page').classList.add('hidden');
-        document.getElementById('game-ui').classList.remove('hidden');
-        buildPlannerUI();
-        updateUI();
-    }
-
-    function buildPlannerUI() {
-        const container = document.getElementById('plannerInputs'); container.innerHTML = "";
-        ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"].forEach(d => {
-            container.innerHTML += `<div><b>${d}</b>: <input type="text" id="input-${d}" value="${state.schedule[d] || ''}"></div>`;
-        });
-    }
-
-    window.savePlanner = () => {
-        ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"].forEach(d => { state.schedule[d] = document.getElementById('input-' + d).value; });
-        sync(); alert("Schema opgeslagen!");
-    };
-
-    window.showPage = (id) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(id === 'page4') movePetInPlayground();
-    };
-
-    function updateUI() {
-        if(!state.setup) return;
-        const isBorn = state.coins >= 50;
-        document.getElementById('petName').innerText = state.name;
-        document.getElementById('coins').innerText = state.coins;
-        document.getElementById('energy-bar').style.width = state.energy + "%";
-        document.getElementById('petEmoji').innerText = isBorn ? state.emoji : "🥚";
-        document.getElementById('ui-evo').innerText = isBorn ? "GEBOREN" : "EI-FASE";
-
-        if(isBorn && !state.born) { 
-            state.born = true; 
-            document.getElementById('snd-pop').play(); 
-            sync(); 
-        }
-
-        if(state.born) {
-            document.getElementById('cert-box').classList.remove('hidden');
-            document.getElementById('cert-name').innerText = state.name;
-            document.getElementById('cert-date').innerText = "Geboren op: " + new Date().toLocaleDateString();
-        }
-
-        const days = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
-        const today = days[new Date().getDay()];
-        const task = state.schedule[today];
-        document.getElementById('todayTaskContainer').innerHTML = task ? `<div class="task-item" onclick="finishTask()">${task}</div>` : "Geen taak.";
-        
-        const hour = new Date().getHours();
-        document.body.classList.toggle('night-mode', hour >= 20 || hour < 7);
-    }
-
-    window.finishTask = () => {
-        if(state.energy >= 10 && !state.completedToday) {
-            document.getElementById('snd-coin').play();
-            state.coins += 25; state.energy -= 10; state.completedToday = true; sync();
-        }
-    }
-
-    window.buy = (i, p) => { if(state.coins >= p) { state.coins -= p; state.energy = Math.min(100, state.energy + 20); sync(); } }
-    async function sync() { if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state); }
-
-    function movePetInPlayground() {
-        const container = document.getElementById('pg-container');
-        container.innerHTML = `<div id="pg-pet" class="pg-pet">${state.coins >= 50 ? state.emoji : "🥚"}</div>`;
-        const pet = document.getElementById('pg-pet');
-        setInterval(() => {
-            if(document.getElementById('page4').classList.contains('active')) {
-                pet.style.left = Math.random() * 80 + "%"; pet.style.top = Math.random() * 60 + "%";
-            }
-        }, 3000);
-    }
-</script>
-</body>
-</html>
+        st.name = document.getElementById('nameInput').value;
+        st.type = window.selP || "🐶";
+        if(!st.name) return alert("Naam!");
