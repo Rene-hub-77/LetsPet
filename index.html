@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet Cloud - Checkbox Edit</title>
+    <title>LifePet Cloud v1.12</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --move: #0984e3; --home: #00b894; --gold: #f1c40f; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --move: #0984e3; --home: #00b894; --gold: #f1c40f; --red: #ff7675; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; color: #333; }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
@@ -16,21 +16,19 @@
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; }
         
-        /* DE NIEUWE CHECKBOX STYLING */
-        .task-list-area { max-height: 200px; overflow-y: auto; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
-        .task-row { display: flex; align-items: center; background: #f8f9fa; padding: 12px; border-radius: 15px; margin-bottom: 8px; transition: 0.3s; }
-        .task-row input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; accent-color: var(--home); margin-right: 12px; }
-        .task-text { font-size: 15px; flex: 1; }
-        .done { text-decoration: line-through; color: #b2bec3; }
+        /* v1.12 Task Row styling */
+        .task-list-area { max-height: 250px; overflow-y: auto; margin-top: 15px; }
+        .task-row { display: flex; align-items: center; background: #f8f9fa; padding: 12px; border-radius: 15px; margin-bottom: 8px; }
+        .task-row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--home); margin-right: 12px; }
+        .task-text { font-size: 14px; flex: 1; }
+        .task-text.done { text-decoration: line-through; color: #b2bec3; }
+        .delete-btn { background: none; border: none; color: var(--red); font-size: 18px; cursor: pointer; padding: 0 5px; font-weight: bold; }
 
         .pet-stage { height: 180px; display: flex; justify-content: center; align-items: center; border-radius: 25px; background: #fff; position: relative; margin-bottom: 20px; box-shadow: inset 0 0 15px rgba(0,0,0,0.05); }
         #pet-main { font-size: 80px; z-index: 5; }
         #pet-acc-view { position: absolute; font-size: 40px; top: 30px; z-index: 10; }
-        
-        .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .product-card { background: white; border-radius: 15px; padding: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid transparent; }
         
         select, .btn-p { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 10px; font-weight: bold; }
         .btn-p { background: var(--p); color: white; border: none; cursor: pointer; }
@@ -42,10 +40,10 @@
 
 <div id="auth-overlay" class="overlay">
     <div style="background: white; color: #333; padding: 30px; border-radius: 25px; width: 280px; text-align: center;">
-        <h2>LifePet Cloud</h2>
+        <h2>LifePet v1.12</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Wachtwoord">
-        <button class="btn-p" onclick="handleAuth()">Inloggen</button>
+        <button class="btn-p" onclick="handleAuth()">Start</button>
     </div>
 </div>
 
@@ -69,14 +67,13 @@
     <div id="page-tasks" class="page">
         <div class="card">
             <h4 style="color:var(--home); margin-top:0;">🏠 Huishouden</h4>
-            <select id="sel-home"><option value="">-- Selecteer taak --</option></select>
+            <select id="sel-home"><option value="">-- Kies taak --</option></select>
             <button class="btn-p" style="background:var(--home)" onclick="addTask('home')">Voeg toe</button>
             <div id="list-home" class="task-list-area"></div>
         </div>
-        
         <div class="card">
             <h4 style="color:var(--move); margin-top:0;">🏃 Beweging</h4>
-            <select id="sel-move"><option value="">-- Selecteer oefening --</option></select>
+            <select id="sel-move"><option value="">-- Kies oefening --</option></select>
             <button class="btn-p" style="background:var(--move)" onclick="addTask('move')">Voeg toe</button>
             <div id="list-move" class="task-list-area"></div>
         </div>
@@ -84,7 +81,7 @@
 
     <div id="page-shop" class="page">
         <h3>Boutique</h3>
-        <div id="shop-grid" class="shop-grid"></div>
+        <div id="shop-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
     </div>
 
     <div class="bottom-nav">
@@ -112,11 +109,9 @@
 
     let state = { lvl:1, xp:0, coins:100, inventory:[], currentAcc:"", tasks:[] };
 
-    const dbHome = ["Bed opmaken", "Vaatwasser uitruimen", "Planten water geven", "Bureau opruimen", "Was ophangen", "Stofzuigen", "Prullenbak legen"];
-    const dbMove = ["20 Squats", "10 Push-ups", "30 sec Planken", "5 min Wandelen", "10 Jumping Jacks", "Trap lopen"];
-
-    const accIcons = ["🎩","👑","🕶️","🎀","🚀","⚽","💎","🍕","🎸","🔥","🧢","👒","🎓","👔"];
-    const shopItems = accIcons.map((icon, i) => ({ id: i, icon: icon, price: (i + 1) * 20 }));
+    const dbHome = ["Bed opmaken", "Vaatwasser uitruimen", "Planten water geven", "Bureau opruimen", "Stofzuigen"];
+    const dbMove = ["20 Squats", "10 Push-ups", "30 sec Planken", "5 min Wandelen", "Trap lopen"];
+    const accIcons = ["🎩","👑","🕶️","🎀","🚀","⚽","💎","🍕","🎸","🔥"];
 
     window.nav = (id, el) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -157,20 +152,17 @@
         }
     };
 
+    // v1.12 Nieuwe verwijderfunctie
+    window.removeTask = (i) => {
+        state.tasks.splice(i, 1);
+        sync();
+    };
+
     function render() {
         document.getElementById('lvl').innerText = state.lvl;
         document.getElementById('coins').innerText = state.coins;
         document.getElementById('xp-bar').style.width = state.xp + "%";
         document.getElementById('pet-main').innerText = ["🥚", "🐣", "🐥", "🐔"][Math.min(state.lvl-1, 3)];
-        
-        const grid = document.getElementById('shop-grid'); grid.innerHTML = "";
-        shopItems.forEach(item => {
-            const owned = state.inventory.includes(item.id);
-            grid.innerHTML += `<div class="product-card" style="${owned?'border-color:var(--home)':''}">
-                <span style="font-size:30px">${item.icon}</span><br>
-                <small>${owned?'BEZIT':'💰'+item.price}</small>
-            </div>`;
-        });
 
         const sh = document.getElementById('sel-home'), sm = document.getElementById('sel-move');
         if(sh.options.length <= 1) {
@@ -181,12 +173,19 @@
         const lh = document.getElementById('list-home'), lm = document.getElementById('list-move');
         lh.innerHTML = ""; lm.innerHTML = "";
         state.tasks.forEach((t, i) => {
-            const h = `
-                <div class="task-row">
-                    <input type="checkbox" ${t.c ? 'checked disabled' : ''} onchange="completeTask(${i})">
-                    <span class="task-text ${t.c ? 'done' : ''}">${t.n}</span>
-                </div>`;
+            const h = `<div class="task-row">
+                <input type="checkbox" ${t.c?'checked disabled':''} onchange="completeTask(${i})">
+                <span class="task-text ${t.c?'done':''}">${t.n}</span>
+                <button class="delete-btn" onclick="removeTask(${i})">×</button>
+            </div>`;
             if(t.cat === 'move') lm.innerHTML += h; else lh.innerHTML += h;
+        });
+
+        const grid = document.getElementById('shop-grid'); grid.innerHTML = "";
+        accIcons.forEach((icon, idx) => {
+            grid.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:15px; text-align:center;">
+                <span style="font-size:30px">${icon}</span>
+            </div>`;
         });
     }
 </script>
