@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
@@ -96,4 +96,150 @@
     <div id="page-tasks" class="page">
         <h3>Dagelijkse Doelen</h3>
         <div class="card">
-            <select id="sel-task" style="width:100%; padding:12px; border-radius:12px
+            <select id="sel-task" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;">
+                <option value="">-- Kies een taak --</option>
+                <optgroup label="Huishouden">
+                    <option value="Bed opmaken">Bed opmaken (+20)</option>
+                    <option value="Vaatwasser">Vaatwasser (+20)</option>
+                </optgroup>
+                <optgroup label="Beweging">
+                    <option value="20 Squats">20 Squats (+30)</option>
+                    <option value="Wandelen">5 min Wandelen (+30)</option>
+                </optgroup>
+            </select>
+            <button class="btn-action" style="background:var(--p)" onclick="addNewTask()">Voeg toe</button>
+        </div>
+        <div id="task-list"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="nav('pet', this)"><div>🐾</div>Pet</div>
+        <div class="nav-item" onclick="nav('tasks', this)"><div>✅</div>Taken</div>
+        <div class="nav-item" onclick="nav('shop', this)"><div>🛍️</div>Shop</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNeVLw0NYgKQrpBC7MuArQAJ5Kli9Xd3o",
+      authDomain: "petlife-68738.firebaseapp.com",
+      projectId: "petlife-68738",
+      appId: "1:942954717479:web:6a8fafe8c7b17d00444902"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let state = { lvl:1, xp:0, coins:100, inventory:[], currentAcc:"", tasks:[] };
+
+    const shopItems = [
+        { id:1, name: "Petje", emoji: "🧢", price: 50, cat: "hat" },
+        { id:2, name: "Kroon", emoji: "👑", price: 500, cat: "luxury" },
+        { id:3, name: "Zonnebril", emoji: "🕶️", price: 75, cat: "glass" },
+        { id:4, name: "Hoge Hoed", emoji: "🎩", price: 150, cat: "hat" },
+        { id:5, name: "Bril", emoji: "🤓", price: 40, cat: "glass" },
+        { id:6, name: "Diamant", emoji: "💎", price: 1000, cat: "luxury" },
+        { id:7, name: "Feesthoed", emoji: "🥳", price: 30, cat: "hat" },
+        { id:8, name: "Halo", emoji: "😇", price: 300, cat: "luxury" }
+    ];
+
+    window.nav = (id, el) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
+        el.classList.add('active');
+    };
+
+    window.handleAuth = async () => {
+        const e = document.getElementById('email').value, p = document.getElementById('password').value;
+        try { await signInWithEmailAndPassword(auth, e, p); } catch { await createUserWithEmailAndPassword(auth, e, p); }
+    };
+
+    onAuthStateChanged(auth, user => {
+        if(user) {
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            onSnapshot(doc(db, "users", user.uid), s => { if(s.exists()){ state = s.data(); render(); }});
+        }
+    });
+
+    async function sync() { if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state); }
+
+    window.filterShop = (cat, el) => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        renderShop(cat);
+    };
+
+    window.buyOrWear = (id) => {
+        const item = shopItems.find(i => i.id === id);
+        if(state.inventory.includes(id)) {
+            state.currentAcc = (state.currentAcc === item.emoji) ? "" : item.emoji;
+        } else if(state.coins >= item.price) {
+            state.coins -= item.price;
+            state.inventory.push(id);
+            state.currentAcc = item.emoji;
+        }
+        sync();
+    };
+
+    window.addNewTask = () => {
+        const val = document.getElementById('sel-task').value;
+        if(val) { state.tasks.unshift({n: val, c: false}); sync(); }
+    };
+
+    window.completeTask = (i) => {
+        if(!state.tasks[i].c) {
+            state.tasks[i].c = true; state.coins += 25; state.xp += 30;
+            if(state.xp >= 100) { state.lvl++; state.xp = 0; }
+            sync();
+        }
+    };
+
+    function renderShop(filter = 'all') {
+        const grid = document.getElementById('shop-grid');
+        grid.innerHTML = "";
+        shopItems.filter(i => filter === 'all' || i.cat === filter).forEach(item => {
+            const owned = state.inventory.includes(item.id);
+            const active = state.currentAcc === item.emoji;
+            grid.innerHTML += `
+                <div class="product-card ${owned ? 'owned' : ''}">
+                    <span class="product-emoji">${item.emoji}</span>
+                    <span style="font-weight:bold;display:block">${item.name}</span>
+                    <span class="price-tag">${owned ? 'BEZIT' : '💰 '+item.price}</span>
+                    <button class="buy-btn ${owned ? 'wear' : 'buy'}" 
+                            onclick="buyOrWear(${item.id})"
+                            ${!owned && state.coins < item.price ? 'disabled' : ''}>
+                        ${owned ? (active ? 'UITDOEN' : 'AANDOEN') : 'KOPEN'}
+                    </button>
+                </div>`;
+        });
+    }
+
+    function render() {
+        document.getElementById('lvl').innerText = state.lvl;
+        document.getElementById('shop-coins').innerText = state.coins;
+        document.getElementById('xp-bar').style.width = state.xp + "%";
+        document.getElementById('pet-main').innerText = ["🥚", "🐣", "🐥", "🐔"][Math.min(state.lvl-1, 3)];
+        document.getElementById('pet-acc-view').innerText = state.currentAcc;
+        document.getElementById('pet-name-display').innerText = state.petName || "Boris";
+
+        renderShop(document.querySelector('.filter-btn.active').innerText.toLowerCase());
+
+        const tl = document.getElementById('task-list');
+        tl.innerHTML = "";
+        state.tasks.forEach((t, i) => {
+            tl.innerHTML += `<div class="card" style="display:flex;align-items:center;padding:12px">
+                <input type="checkbox" ${t.c?'checked disabled':''} onchange="completeTask(${i})">
+                <span style="margin-left:10px;${t.c?'text-decoration:line-through;color:gray':''}">${t.n}</span>
+            </div>`;
+        });
+    }
+</script>
+</body>
+</html>
