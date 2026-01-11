@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LifePet Cloud App</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#6c5ce7">
+
+    <style>
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; min-height: 100vh; color: #333; -webkit-tap-highlight-color: transparent; }
+        .app-container { width: 100%; max-width: 900px; padding: 20px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
+        
+        /* Auth Overlay */
+        #auth-overlay { position: fixed; inset: 0; background: var(--p); z-index: 1000; display: flex; align-items: center; justify-content: center; color: white; padding: 20px; }
+        .auth-box { background: white; color: #333; padding: 30px; border-radius: 25px; width: 100%; max-width: 320px; text-align: center; }
+        
+        /* Pet UI */
+        .pet-stage { height: 200px; display: flex; justify-content: center; align-items: center; border-radius: 20px; border: 4px solid white; position: relative; transition: 0.5s; overflow: hidden; }
+        #pet-main { font-size: 80px; z-index: 5; transition: transform 0.2s; }
+        .settings-icon { position: absolute; top: 12px; right: 12px; cursor: pointer; font-size: 20px; opacity: 0.5; z-index: 10; }
+        
+        /* Knoppen & Velden */
+        input, .btn { padding: 14px; border-radius: 15px; border: 1px solid #ddd; margin: 8px 0; width: 100%; box-sizing: border-box; font-size: 16px; }
+        .btn-p { background: var(--p); color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-suggest { background: #00b894; color: white; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 13px; width: 48%; }
+        .btn-move { background: #0984e3; color: white; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 13px; width: 48%; float: right; }
+        
+        /* Progress Bars */
+        .bar-bg { background: #eee; height: 12px; border-radius: 6px; margin: 8px 0; overflow: hidden; }
+        .bar-fill { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        .hidden { display: none !important; }
+        .link { font-size: 13px; cursor: pointer; color: var(--p); display: block; margin-top: 12px; text-decoration: none; }
+        
+        /* Modals */
+        #settings-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; padding: 10px; } }
+    </style>
+</head>
+<body>
+
+<div id="auth-overlay">
+    <div class="auth-box">
+        <h2 id="auth-title">LifePet Cloud</h2>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Wachtwoord">
+        <button class="btn btn-p" onclick="handleAuth()">Start App</button>
+        <span class="link" onclick="toggleAuth()">Nieuw account maken</span>
+        <span class="link" onclick="forgotPassword()" style="color:#888">Wachtwoord vergeten?</span>
+    </div>
+</div>
+
+<div id="settings-modal" class="hidden">
+    <div class="auth-box">
+        <h3>Hernoem je Pet</h3>
+        <input type="text" id="newPetName" placeholder="Bijv. Dino, Luna...">
+        <button class="btn btn-p" onclick="updatePetName()">Opslaan</button>
+        <button class="btn" onclick="toggleSettings()" style="background:#f1f1f1; border:none;">Sluiten</button>
+    </div>
+</div>
+
+<div id="game-ui" class="app-container hidden">
+    <div class="left-col">
+        <div class="card" style="text-align: center;">
+            <div id="stage" class="pet-stage">
+                <span class="settings-icon" onclick="toggleSettings()">⚙️</span>
+                <div id="pet-main">🥚</div>
+            </div>
+            <h3 id="pet-name-display" style="margin: 10px 0;">Boris</h3>
+            <div style="background:#fdcb6e; padding:12px; border-radius:15px; font-weight:bold; color:#d35400;">💰 <span id="coins">0</span> Munten</div>
+            
+            <div style="text-align: left; margin-top: 20px;">
+                <small>Level <span id="lvl">1</span></small>
+                <div class="bar-bg"><div id="xp-bar" class="bar-fill" style="background:#00d2d3"></div></div>
+                <small>Gezondheid</small>
+                <div class="bar-bg"><div id="h-bar" class="bar-fill" style="background:#ff7675"></div></div>
+            </div>
+            <button onclick="signOutUser()" class="link" style="border:none; background:none; margin: 25px auto 0; color: #ff7675;">Uitloggen</button>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="card">
+            <h4>Nieuwe Activiteit</h4>
+            <div style="margin-bottom: 15px;">
+                <button class="btn-suggest" onclick="suggest('task')">🎲 Willekeurige Taak</button>
+                <button class="btn-move" onclick="suggest('move')">🏃 Beweging</button>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="taskInput" placeholder="Eigen taak...">
+                <button onclick="addTask()" class="btn-p" style="width:60px; margin: 8px 0;">+</button>
+            </div>
+        </div>
+        <div class="card">
+            <h4>Mijn Taken</h4>
+            <div id="taskList"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNeVLw0NYgKQrpBC7MuArQAJ5Kli9Xd3o",
+      authDomain: "petlife-68738.firebaseapp.com",
+      projectId: "petlife-68738",
+      storageBucket: "petlife-68738.firebasestorage.app",
+      messagingSenderId: "942954717479",
+      appId: "1:942954717479:web:6a8fafe8c7b17d00444902"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let state = { lvl:1, xp:0, coins:0, stats:{h:50}, petName: "Boris", tasks:[], currentBg:"#e0e0e0" };
+
+    const taskDb = ["Vaatwasser uitruimen", "Bed opmaken", "Planten water geven", "Bureau opruimen", "Was ophangen", "Vuilniszak vervangen", "Keukenaanrecht afnemen", "Spiegel poetsen", "Badkamer wastafel poetsen", "Stofzuigen hal"];
+    const moveDb = ["20 Squats", "30 sec Planken", "10 Push-ups", "50 Jumping Jacks", "5 min Wandelen", "15 Lunges", "Trap 3x op en neer", "Dans op 1 liedje"];
+
+    // --- TRILFUNCTIE ---
+    function vibrate(ms) {
+        if ("vibrate" in navigator) {
+            navigator.vibrate(ms);
+        }
+    }
+
+    // --- LOGICA ---
+    window.toggleSettings = () => document.getElementById('settings-modal').classList.toggle('hidden');
+    
+    window.updatePetName = async () => {
+        const name = document.getElementById('newPetName').value;
+        if(name) { state.petName = name; await sync(); toggleSettings(); }
+    };
+
+    window.suggest = (type) => {
+        const source = type === 'task' ? taskDb : moveDb;
+        const random = source[Math.floor(Math.random() * source.length)];
+        state.tasks.unshift({n: random, c: false});
+        vibrate(50); // Kort trilletje bij suggestie
+        sync();
+    };
+
+    window.toggleAuth = () => {
+        const isLogin = document.getElementById('auth-title').innerText.includes("Inloggen");
+        document.getElementById('auth-title').innerText = isLogin ? "LifePet Registreren" : "LifePet Inloggen";
+    };
+
+    window.handleAuth = async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const isLogin = document.getElementById('auth-title').innerText.includes("Inloggen");
+        try {
+            if(isLogin) await signInWithEmailAndPassword(auth, email, pass);
+            else {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                await setDoc(doc(db, "users", res.user.uid), state);
+            }
+        } catch(e) { alert(e.message); }
+    };
+
+    window.forgotPassword = async () => {
+        const email = document.getElementById('email').value;
+        if(email) await sendPasswordResetEmail(auth, email).then(()=>alert("Herstel-email verzonden!"));
+    };
+
+    window.signOutUser = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+        if(user) {
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            onSnapshot(doc(db, "users", user.uid), (s) => { if(s.exists()){ state = s.data(); render(); }});
+        } else {
+            document.getElementById('auth-overlay').classList.remove('hidden');
+            document.getElementById('game-ui').classList.add('hidden');
+        }
+    });
+
+    async function sync() { if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state); }
+
+    window.addTask = () => {
+        const val = document.getElementById('taskInput').value;
+        if(val){ state.tasks.unshift({n:val, c:false}); document.getElementById('taskInput').value=""; sync(); }
+    };
+
+    window.completeTask = (i) => {
+        if(!state.tasks[i].c){
+            state.tasks[i].c = true;
+            state.coins += 20; 
+            state.xp += 30;
+            state.stats.h = Math.min(state.stats.h + 15, 100);
+            
+            vibrate([100, 50, 100]); // Dubbele trilling (succes!)
+            
+            if(state.xp >= 100){ 
+                state.lvl++; 
+                state.xp = 0; 
+                vibrate(500); // Lange trilling bij Level Up
+            }
+            
+            // Animatie effect
+            document.getElementById('pet-main').style.transform = "scale(1.3) rotate(10deg)";
+            setTimeout(() => document.getElementById('pet-main').style.transform = "scale(1) rotate(0deg)", 300);
+            
+            sync();
+        }
+    };
+
+    function render() {
+        document.getElementById('lvl').innerText = state.lvl;
+        document.getElementById('coins').innerText = state.coins;
+        document.getElementById('pet-name-display').innerText = state.petName || "Boris";
+        document.getElementById('xp-bar').style.width = state.xp + "%";
+        document.getElementById('h-bar').style.width = state.stats.h + "%";
+        
+        const avatars = ["🥚", "🐣", "🐥", "🐱", "🦁", "🐉"];
+        document.getElementById('pet-main').innerText = avatars[Math.min(state.lvl-1, 5)];
+        
+        const list = document.getElementById('taskList');
+        list.innerHTML = "";
+        state.tasks.forEach((t, i) => {
+            list.innerHTML += `<div style="padding:15px; border-radius:15px; background:${t.c?'#f9f9f9':'#fff'}; border:1px solid #eee; margin-bottom:10px; display:flex; align-items:center;">
+                <input type="checkbox" ${t.c?'checked disabled':''} onchange="completeTask(${i})" style="width:22px; height:22px; margin-right:15px; accent-color:var(--p);">
+                <span style="${t.c?'text-decoration:line-through;color:gray':'font-weight:bold'}">${t.n}</span>
+            </div>`;
+        });
+    }
+</script>
+</body>
+</html>
