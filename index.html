@@ -1,195 +1,99 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet Cloud</title>
+    <title>LifePet Cloud - Boutique</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --move: #0984e3; --home: #00b894; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 70px; color: #333; overflow-x: hidden; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --move: #0984e3; --home: #00b894; --gold: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; color: #333; }
         
-        /* Navigatie Menu Onderaan */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); z-index: 1000; }
-        .nav-item { text-align: center; color: #a29bfe; cursor: pointer; flex: 1; transition: 0.3s; }
-        .nav-item.active { color: var(--p); font-weight: bold; }
-        .nav-item div { font-size: 20px; }
-        .nav-item span { font-size: 11px; display: block; }
-
-        /* Secties */
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        /* Navigatie */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
+        .nav-item { text-align: center; color: #a29bfe; cursor: pointer; flex: 1; font-size: 12px; transition: 0.3s; }
+        .nav-item.active { color: var(--p); transform: translateY(-5px); }
+        .nav-item div { font-size: 22px; }
+        
+        /* Pagina's */
+        .page { display: none; padding: 20px; animation: slideUp 0.4s ease; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* UI Elementen */
-        .card { background: var(--card); padding: 20px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .pet-stage { height: 200px; display: flex; justify-content: center; align-items: center; border-radius: 20px; background: #eee; position: relative; margin-bottom: 15px; }
-        #pet-main { font-size: 80px; }
-        #pet-acc-view { position: absolute; font-size: 35px; top: 30px; }
+        /* Winkel Interface */
+        .shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .coin-display { background: var(--gold); color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(241, 196, 15, 0.3); }
         
-        .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .shop-item { background: #f8f9fa; border-radius: 15px; padding: 15px; text-align: center; border: 2px solid transparent; }
-        .shop-item.owned { border-color: #00b894; background: #e3fcef; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { padding: 8px 15px; border-radius: 15px; border: none; background: #eee; cursor: pointer; white-space: nowrap; font-size: 13px; }
+        .filter-btn.active { background: var(--p); color: white; }
 
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; width: 100%; color: white; cursor: pointer; margin-top: 5px; }
-        .bar-bg { background: #eee; height: 12px; border-radius: 6px; margin: 8px 0; overflow: hidden; }
-        .bar-fill { height: 100%; transition: 0.5s; }
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .product-card { background: white; border-radius: 20px; padding: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid transparent; transition: 0.3s; }
+        .product-card.owned { border-color: var(--home); }
+        .product-emoji { font-size: 45px; margin-bottom: 10px; display: block; }
+        .price-tag { color: var(--gold); font-weight: bold; margin-bottom: 10px; display: block; }
+        
+        .buy-btn { width: 100%; padding: 10px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .buy-btn.buy { background: var(--p); color: white; }
+        .buy-btn.wear { background: var(--home); color: white; }
+        .buy-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Pet Stage */
+        .pet-stage { height: 220px; display: flex; justify-content: center; align-items: center; border-radius: 25px; background: #fff; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); position: relative; margin-bottom: 20px; }
+        #pet-main { font-size: 90px; z-index: 5; }
+        #pet-acc-view { position: absolute; font-size: 40px; top: 40px; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+
+        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .btn-action { padding: 15px; border-radius: 15px; border: none; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .hidden { display: none !important; }
-        .overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
-<div id="auth-overlay" class="overlay">
-    <div style="background: white; color: #333; padding: 30px; border-radius: 25px; width: 280px; text-align: center;">
+<div id="auth-overlay" style="position:fixed; inset:0; background:var(--p); z-index:2000; display:flex; align-items:center; justify-content:center; color:white;">
+    <div style="background:white; color:#333; padding:30px; border-radius:25px; width:280px; text-align:center;">
         <h2>LifePet Cloud</h2>
-        <input type="email" id="email" placeholder="E-mail" style="width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; box-sizing: border-box;">
-        <input type="password" id="password" placeholder="Wachtwoord" style="width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; box-sizing: border-box;">
-        <button class="btn" style="background: var(--p);" onclick="handleAuth()">Start Avontuur</button>
+        <input type="email" id="email" placeholder="E-mail" style="width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; box-sizing:border-box;">
+        <input type="password" id="password" placeholder="Wachtwoord" style="width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; box-sizing:border-box;">
+        <button onclick="handleAuth()" style="width:100%; padding:15px; border-radius:15px; border:none; background:var(--p); color:white; font-weight:bold; cursor:pointer;">Inloggen</button>
     </div>
 </div>
 
 <div id="game-ui" class="hidden">
     <div id="page-pet" class="page active">
+        <div class="pet-stage">
+            <div id="pet-acc-view"></div>
+            <div id="pet-main">🥚</div>
+        </div>
         <div class="card" style="text-align: center;">
-            <div class="pet-stage">
-                <div id="pet-acc-view"></div>
-                <div id="pet-main">🥚</div>
-            </div>
-            <h2 id="pet-name-display">Boris</h2>
-            <div style="background:#fdcb6e; padding:12px; border-radius:15px; font-weight:bold; color:#d35400;">💰 <span id="coins">0</span> Munten</div>
-            <div style="text-align: left; margin-top: 20px;">
+            <h2 id="pet-name-display" style="margin:0">Boris</h2>
+            <div style="margin-top:15px;">
                 <small>Level <span id="lvl">1</span></small>
-                <div class="bar-bg"><div id="xp-bar" class="bar-fill" style="background:#00d2d3"></div></div>
-                <small>Gezondheid</small>
-                <div class="bar-bg"><div id="h-bar" class="bar-fill" style="background:#ff7675"></div></div>
+                <div style="background:#eee; height:12px; border-radius:6px; overflow:hidden; margin:5px 0;">
+                    <div id="xp-bar" style="height:100%; background:var(--p); width:0%; transition:0.5s;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="page-tasks" class="page">
-        <h3>🏠 Huishouden</h3>
-        <button class="btn" style="background: var(--home);" onclick="suggest('home')">+ Nieuwe Taak</button>
-        <div id="list-home" style="margin: 15px 0;"></div>
-
-        <h3 style="margin-top: 25px;">🏃 Beweging</h3>
-        <button class="btn" style="background: var(--move);" onclick="suggest('move')">+ Nieuwe Oefening</button>
-        <div id="list-move" style="margin: 15px 0;"></div>
-    </div>
-
     <div id="page-shop" class="page">
-        <h3>Winkel</h3>
-        <div class="shop-grid" id="shop-grid"></div>
+        <div class="shop-header">
+            <h3>Boutique</h3>
+            <div class="coin-display">💰 <span id="shop-coins">0</span></div>
+        </div>
+        
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterShop('all', this)">Alles</button>
+            <button class="filter-btn" onclick="filterShop('hat', this)">Hoeden</button>
+            <button class="filter-btn" onclick="filterShop('glass', this)">Brillen</button>
+            <button class="filter-btn" onclick="filterShop('luxury', this)">Luxe</button>
+        </div>
+
+        <div id="shop-grid" class="shop-grid">
+            </div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="showPage('pet', this)"><div>🐾</div><span>Pet</span></div>
-        <div class="nav-item" onclick="showPage('tasks', this)"><div>✅</div><span>Taken</span></div>
-        <div class="nav-item" onclick="showPage('shop', this)"><div>💎</div><span>Winkel</span></div>
-        <div class="nav-item" onclick="signOutUser()"><div>🚪</div><span>Uit</span></div>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCNeVLw0NYgKQrpBC7MuArQAJ5Kli9Xd3o",
-      authDomain: "petlife-68738.firebaseapp.com",
-      projectId: "petlife-68738",
-      storageBucket: "petlife-68738.firebasestorage.app",
-      appId: "1:942954717479:web:6a8fafe8c7b17d00444902"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    let state = { lvl:1, xp:0, coins:0, stats:{h:50}, tasks:[], inventory:[], currentAcc:"", petType:"hond" };
-    const evolutions = { hond: ["🥚", "🐾", "🐶", "🐕"] };
-    const accs = ["🎩","👑","🕶️","🎀","🚀","⚽","💎","🍕","🎸","🔥"];
-
-    window.showPage = (id, el) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
-        el.classList.add('active');
-    };
-
-    window.handleAuth = async () => {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('password').value;
-        try { await signInWithEmailAndPassword(auth, e, p); } 
-        catch { await createUserWithEmailAndPassword(auth, e, p); }
-    };
-
-    window.signOutUser = () => signOut(auth);
-
-    onAuthStateChanged(auth, (user) => {
-        if(user) {
-            document.getElementById('auth-overlay').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            onSnapshot(doc(db, "users", user.uid), (s) => { if(s.exists()){ state = s.data(); render(); }});
-        } else {
-            document.getElementById('auth-overlay').classList.remove('hidden');
-            document.getElementById('game-ui').classList.add('hidden');
-        }
-    });
-
-    async function sync() { if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state); }
-
-    window.suggest = (cat) => {
-        const t = cat === 'home' ? "Bed opmaken" : "15 Squats";
-        state.tasks.unshift({ n: t, c: false, cat: cat });
-        sync();
-    };
-
-    window.completeTask = (i) => {
-        if(!state.tasks[i].c) {
-            state.tasks[i].c = true;
-            state.coins += 20; state.xp += 35;
-            if(state.xp >= 100) { state.lvl++; state.xp = 0; }
-            sync();
-        }
-    };
-
-    window.buy = (idx) => {
-        const price = (idx + 1) * 25;
-        if(state.inventory.includes(idx)) state.currentAcc = accs[idx];
-        else if(state.coins >= price) { state.coins -= price; state.inventory.push(idx); state.currentAcc = accs[idx]; }
-        sync();
-    };
-
-    function render() {
-        document.getElementById('lvl').innerText = state.lvl;
-        document.getElementById('coins').innerText = state.coins;
-        document.getElementById('xp-bar').style.width = state.xp + "%";
-        document.getElementById('h-bar').style.width = state.stats.h + "%";
-        document.getElementById('pet-main').innerText = evolutions.hond[Math.min(state.lvl-1, 3)];
-        document.getElementById('pet-acc-view').innerText = state.currentAcc || "";
-
-        const grid = document.getElementById('shop-grid');
-        grid.innerHTML = "";
-        accs.forEach((a, i) => {
-            const owned = state.inventory.includes(i);
-            grid.innerHTML += `<div class="shop-item ${owned?'owned':''}" onclick="buy(${i})">
-                <div style="font-size:30px">${a}</div>
-                <small>${owned?'BEZIT':'💰'+((i+1)*25)}</small>
-            </div>`;
-        });
-
-        const lh = document.getElementById('list-home');
-        const lm = document.getElementById('list-move');
-        lh.innerHTML = ""; lm.innerHTML = "";
-        state.tasks.forEach((t, i) => {
-            const h = `<div class="card" style="padding:12px; margin-bottom:8px; display:flex; align-items:center;">
-                <input type="checkbox" ${t.c?'checked disabled':''} onchange="completeTask(${i})" style="margin-right:10px;">
-                <span style="${t.c?'text-decoration:line-through;color:gray':''}">${t.n}</span>
-            </div>`;
-            if(t.cat === 'move') lm.innerHTML += h; else lh.innerHTML += h;
-        });
-    }
-</script>
-</body>
-</html>
+    <div id="page-tasks" class="page">
+        <h3>Dagelijkse Doelen</h3>
+        <div class="card">
+            <select id="sel-task" style="width:100%; padding:12px; border-radius:12px
