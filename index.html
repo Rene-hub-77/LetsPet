@@ -3,176 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet v1.35 - Mega Kitchen</title>
+    <title>LifePet v1.50 - Ultimate Edition</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --home: #00b894; --heart: #ff7675; --cook: #e67e22; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; overflow-x: hidden; }
+        :root { 
+            --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; 
+            --home: #00b894; --heart: #ff7675; --energy: #3498db; --text: #333;
+        }
+        body.night-mode { 
+            --bg: #1a1a2e; --card: #16213e; --text: #e9ecef; --nav: #0f3460;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text); transition: 0.5s; overflow-x: hidden; }
         
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 25px 25px 0 0; }
-        .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 11px; }
+        /* Navigatie */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
+        .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 10px; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         
+        /* Layout */
         .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; }
-        .btn-p { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
-
-        /* Mega Food Grid */
-        .food-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: none; }
-        .food-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .food-item { background: #f9f9f9; padding: 12px; border-radius: 20px; text-align: center; border: 2px solid transparent; transition: 0.2s; position: relative; }
-        .food-item:active { transform: scale(0.95); background: #eee; }
-        .food-icon { font-size: 32px; display: block; }
-        .food-badge { position: absolute; top: -5px; right: -5px; background: var(--p); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; line-height: 20px; font-weight: bold; }
+        .card { background: var(--card); padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); position: relative; }
         
-        .pet-stage { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; margin: 10px 0; }
-        .happy-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-        .happy-fill { height: 100%; background: var(--heart); transition: 0.5s; }
+        /* Pet View */
+        .pet-stage { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .pet-acc { position: absolute; font-size: 45px; top: 15px; z-index: 10; pointer-events: none; }
+        .stat-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 5px 0 10px 0; }
+        
+        /* Grids */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .item-box { background: rgba(0,0,0,0.03); padding: 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .item-box.owned { border-color: var(--home); background: rgba(0,184,148,0.1); }
+        
+        /* Planner */
+        .quick-btn { font-size: 10px; padding: 5px; margin: 2px; border-radius: 5px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
 
+        .overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .hidden { display: none !important; }
+        .btn-p { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div id="game-ui" class="hidden">
-    <div id="page-pet" class="page active">
-        <div class="card" style="text-align: center;">
-            <div class="pet-stage">
-                <div id="eat-msg"></div>
-                <div id="pet-main" style="font-size: 100px;">🐾</div>
-            </div>
-            <h2 id="pet-name-label" style="margin: 0;">Pet</h2>
-            <div class="happy-bar"><div id="happy-fill" class="happy-fill"></div></div>
-            <div style="background: var(--gold); color: white; padding: 8px; border-radius: 12px; font-weight: bold; margin-top: 15px;">💰 <span class="coin-val">0</span></div>
-        </div>
-        
-        <div class="card">
-            <p style="margin: 0 0 10px 0; font-weight: bold;">Voorraadkast (Tik om te voeren):</p>
-            <div id="inventory-list" class="food-scroll"></div>
-        </div>
-    </div>
-
-    <div id="page-kitchen" class="page">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0;">De Markt</h3>
-            <div style="color:var(--gold); font-weight:bold;">💰 <span class="coin-val">0</span></div>
-        </div>
-        
-        <div class="card">
-            <p style="margin-top:0; color:var(--cook);"><b>Vers & Gezond</b></p>
-            <div class="food-grid" id="market-fresh"></div>
-        </div>
-
-        <div class="card">
-            <p style="margin-top:0; color:var(--p);"><b>Luxe & Snacks</b></p>
-            <div class="food-grid" id="market-luxury"></div>
-        </div>
-    </div>
-
-    <div id="page-tasks" class="page"><h3>Taken</h3><div id="task-list"></div></div>
-    <div id="page-collection" class="page"><h3>Collectie</h3><div id="pet-list-ui"></div></div>
-
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="nav('pet', this)"><div>🐾</div>Pet</div>
-        <div class="nav-item" onclick="nav('tasks', this)"><div>✅</div>Taken</div>
-        <div class="nav-item" onclick="nav('kitchen', this)"><div>🍳</div>Markt</div>
-        <div class="nav-item" onclick="nav('collection', this)"><div>🏠</div>Collectie</div>
+<div id="auth-overlay" class="overlay">
+    <div class="card" style="width: 100%; max-width: 320px; text-align: center;">
+        <h2 style="color:var(--p)">LifePet Cloud</h2>
+        <input type="email" id="email" placeholder="E-mail" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+        <input type="password" id="password" placeholder="Wachtwoord" style="width:100%; padding:10px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
+        <button class="btn-p" onclick="handleAuth()">START AVONTUUR</button>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<div id="adopt-overlay" class="overlay hidden" style="background: white; flex-direction: column;">
+    <h2 style="color:var(--p)">Adopteer een vriend</h2>
+    <input type="text" id="new-pet-name" placeholder="Naam van je pet..." style="padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px; text-align:center;">
+    <div class="grid-3" style="font-size: 40px;">
+        <div class="item-box" onclick="selectType('🐶', this)">🐶</div>
+        <div class="item-box" onclick="selectType('🐱', this)">🐱</div>
+        <div class="item-box" onclick="selectType('🐰', this)">🐰</div>
+        <div class="item-box" onclick="selectType('🐲', this)">🐲</div>
+        <div class="item-box" onclick="selectType('🦄', this)">🦄</div>
+        <div class="item-box" onclick="selectType('🐼', this)">🐼</div>
+    </div>
+    <button class="btn-p" style="margin-top:20px; max-width:200px;" onclick="confirmAdopt()">BEVESTIG</button>
+</div>
 
-    const firebaseConfig = { apiKey: "AIzaSyCNeVLw0NYgKQrpBC7MuArQAJ5Kli9Xd3o", authDomain: "petlife-68738.firebaseapp.com", projectId: "petlife-68738", appId: "1:942954717479:web:6a8fafe8c7b17d00444902" };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // MEGA DATABASE
-    const freshItems = [
-        {id:'apple', n:'Appel', i:'🍎', p:10, h:5}, {id:'carrot', n:'Wortel', i:'🥕', p:8, h:4}, 
-        {id:'banana', n:'Banaan', i:'🍌', p:12, h:6}, {id:'milk', n:'Melk', i:'🥛', p:15, h:8},
-        {id:'egg', n:'Ei', i:'🥚', p:10, h:5}, {id:'broccoli', n:'Broccoli', i:'🥦', p:12, h:7}
-    ];
-    const luxuryItems = [
-        {id:'pizza', n:'Pizza', i:'🍕', p:50, h:25}, {id:'burger', n:'Burger', i:'🍔', p:45, h:22},
-        {id:'sushi', n:'Sushi', i:'🍣', p:60, h:30}, {id:'cake', n:'Taart', i:'🍰', p:70, h:40},
-        {id:'ice', n:'Ijs', i:'🍦', p:25, h:15}, {id:'donut', n:'Donut', i:'🍩', p:20, h:10}
-    ];
-
-    let state = { coins: 300, activeIdx: 0, pets: [{name: "Boris", type: "🐶", happy: 50}], inventory: {}, schedule: {}, completed: [] };
-
-    onAuthStateChanged(auth, user => {
-        if(user) {
-            document.getElementById('game-ui').classList.remove('hidden');
-            onSnapshot(doc(db, "users", user.uid), s => { if(s.exists()){ state = s.data(); render(); }});
-        }
-    });
-
-    window.buyFood = (item) => {
-        if(state.coins >= item.p) {
-            state.coins -= item.p;
-            state.inventory[item.id] = (state.inventory[item.id] || 0) + 1;
-            sync();
-        }
-    };
-
-    window.feedPet = (id) => {
-        if(state.inventory[id] > 0) {
-            const allItems = [...freshItems, ...luxuryItems];
-            const food = allItems.find(f => f.id === id);
-            state.inventory[id]--;
-            state.pets[state.activeIdx].happy = Math.min(100, (state.pets[state.activeIdx].happy || 0) + food.h);
-            
-            const msg = document.getElementById('eat-msg');
-            msg.innerHTML = `<div style="position:absolute; animation:f 1s forwards; color:var(--heart)">Mjam! +${food.h}❤️</div>`;
-            setTimeout(() => msg.innerHTML="", 1000);
-            sync();
-        }
-    };
-
-    window.nav = (id, el) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('page-'+id).classList.add('active');
-        if(el) el.classList.add('active');
-        render();
-    };
-
-    async function sync() { if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state); }
-
-    function render() {
-        const active = state.pets[state.activeIdx];
-        document.querySelectorAll('.coin-val').forEach(el => el.innerText = state.coins);
-        document.getElementById('pet-main').innerText = active.type;
-        document.getElementById('pet-name-label').innerText = active.name;
-        document.getElementById('happy-fill').style.width = (active.happy || 0) + "%";
-
-        // Render Markets
-        const mf = document.getElementById('market-fresh'), ml = document.getElementById('market-luxury');
-        mf.innerHTML = ""; ml.innerHTML = "";
-        freshItems.forEach(i => mf.innerHTML += `<div class="food-item" onclick='buyFood(${JSON.stringify(i)})'><span class="food-icon">${i.i}</span><small>💰${i.p}</small></div>`);
-        luxuryItems.forEach(i => ml.innerHTML += `<div class="food-item" onclick='buyFood(${JSON.stringify(i)})'><span class="food-icon">${i.i}</span><small>💰${i.p}</small></div>`);
-
-        // Render Inventory
-        const inv = document.getElementById('inventory-list');
-        inv.innerHTML = "";
-        let empty = true;
-        const all = [...freshItems, ...luxuryItems];
-        for(let id in state.inventory) {
-            if(state.inventory[id] > 0) {
-                empty = false;
-                const item = all.find(f => f.id === id);
-                inv.innerHTML += `<div class="food-item" onclick="feedPet('${id}')" style="min-width:70px;"><span class="food-icon">${item.i}</span><div class="food-badge">${state.inventory[id]}</div></div>`;
-            }
-        }
-        if(empty) inv.innerHTML = "<p style='color:#aaa; font-size:12px;'>De markt is open!</p>";
-    }
-</script>
-<style> @keyframes f { from {transform:translateY(0); opacity:1;} to {transform:translateY(-50px); opacity:0;} } </style>
-</body>
-</html>
+<div id="game-ui" class="hidden">
+    <div id="page-pet" class="page active">
+        <div class="card" style="text-align: center;">
+            <button onclick="takeSnap()" style="position:absolute; right:15px; top:15px; border:none; background:none; font-size:20px;">📸</button>
+            <div class="pet-stage">
+                <div id="acc-display" class="pet-acc"></div>
