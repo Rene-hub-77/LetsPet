@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet v1.60 - Stable All-in-One</title>
+    <title>LifePet v1.65 - Offline & Online Hybrid</title>
     <style>
         :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --home: #00b894; --heart: #ff7675; --energy: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 10px; }
+        .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 11px; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
         .page.active { display: block; }
@@ -17,11 +17,12 @@
         .btn-p { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .box { background: #f9f9f9; padding: 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; }
-        .box.selected { border-color: var(--p); background: #f3f0ff; }
+        .box.active { border-color: var(--p); background: #f3f0ff; }
         .stat-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 5px 0 10px 0; }
         .quick-btn { font-size: 10px; padding: 5px 8px; margin: 2px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
         .overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .hidden { display: none !important; }
+        input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -29,28 +30,32 @@
 <div id="auth-overlay" class="overlay">
     <div class="card" style="width:100%; max-width:300px; text-align:center;">
         <h2 style="color:var(--p)">LifePet Login</h2>
-        <input type="email" id="email" placeholder="E-mail" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-        <input type="password" id="password" placeholder="Wachtwoord" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-        <button class="btn-p" onclick="handleAuth()">START</button>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Wachtwoord">
+        <button class="btn-p" onclick="handleAuth()">LOGIN / START</button>
+        <p style="font-size: 10px; color: #888; margin-top: 10px;">Geen internet? App werkt ook offline.</p>
     </div>
 </div>
 
 <div id="adopt-overlay" class="overlay hidden" style="background:white; flex-direction:column; color:#333;">
     <h2>Adopteer je vriend</h2>
-    <input type="text" id="new-name" placeholder="Naam..." style="padding:10px; border-radius:10px; border:1px solid #ddd; width:200px; text-align:center;">
-    <div class="grid-3" style="font-size:40px; margin:20px 0;">
-        <div class="box" onclick="setT('🐶',this)">🐶</div><div class="box" onclick="setT('🐱',this)">🐱</div><div class="box" onclick="setT('🐰',this)">🐰</div>
-        <div class="box" onclick="setT('🐲',this)">🐲</div><div class="box" onclick="setT('🦄',this)">🦄</div><div class="box" onclick="setT('🐼',this)">🐼</div>
+    <input type="text" id="new-name" placeholder="Naam van je pet..." style="text-align:center;">
+    <div class="grid-3" id="pet-choices" style="font-size:40px; margin:20px 0;">
+        <div class="box" onclick="pickT('🐶', this)">🐶</div>
+        <div class="box" onclick="pickT('🐱', this)">🐱</div>
+        <div class="box" onclick="pickT('🐲', this)">🐲</div>
+        <div class="box" onclick="pickT('🦄', this)">🦄</div>
+        <div class="box" onclick="pickT('🐼', this)">🐼</div>
+        <div class="box" onclick="pickT('🦊', this)">🦊</div>
     </div>
-    <button class="btn-p" style="max-width:200px;" onclick="confirmPet()">KIES DIER</button>
+    <button class="btn-p" style="max-width:200px;" onclick="confirmPet()">ADOPTEER</button>
 </div>
 
 <div id="game-ui" class="hidden">
     <div id="page-pet" class="page active">
         <div class="card" style="text-align: center;">
-            <div id="pet-acc" style="position:absolute; top:20px; width:100%; font-size:45px; pointer-events:none;"></div>
             <div id="pet-view" style="font-size:100px; margin:20px 0;">🐾</div>
-            <h2 id="name-label" style="margin:0">Naam</h2>
+            <h2 id="name-label" style="margin:0">Mijn Pet</h2>
             <div style="text-align:left; margin-top:15px;">
                 <small>Energie ⚡</small><div class="stat-bar"><div id="e-fill" style="background:var(--energy); height:100%; width:100%"></div></div>
                 <small>Geluk ❤️</small><div class="stat-bar"><div id="h-fill" style="background:var(--heart); height:100%; width:100%"></div></div>
@@ -58,16 +63,15 @@
             <div style="background:var(--gold); color:white; padding:10px; border-radius:15px; font-weight:bold;">💰 <span class="coin-val">0</span></div>
         </div>
         <div class="card">
-            <b>Voorraadkast (Eten):</b>
+            <b>Snel voeren:</b>
             <div id="inv-food" class="grid-3" style="margin-top:10px;"></div>
         </div>
     </div>
 
     <div id="page-planner" class="page">
         <h3>📅 Weekschema</h3>
-        <label><input type="checkbox" id="v-toggle" onchange="st.vacation=this.checked;sync()"> 🌴 Vakantiemodus</label>
-        <div id="planner-ui" style="margin-top:15px;"></div>
-        <button class="btn-p" onclick="savePlan()">SCHEMA OPSLAAN</button>
+        <div id="planner-ui"></div>
+        <button class="btn-p" onclick="savePlan()">ALLES OPSLAAN</button>
         <hr>
         <h4>Taken van Vandaag</h4>
         <div id="today-ui"></div>
@@ -100,35 +104,44 @@
     const db = getFirestore(app);
 
     const DAYS = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
-    const QUICK = { h: ["Afwassen", "Stofzuigen", "Dweilen"], b: ["Wandelen", "Sporten", "Yoga"] };
-    const FOOD = [{id:'apple', i:'🍎', p:15, e:20}, {id:'pizza', i:'🍕', p:50, e:60}];
+    const QUICK = { h: ["Afwassen", "Stofzuigen", "Opruimen"], b: ["Wandelen", "Sporten", "Planken"] };
+    const FOOD = [{id:'apple', i:'🍎', p:10, e:20}, {id:'pizza', i:'🍕', p:50, e:60}];
     const ACCS = [{id:0, i:'🎩', p:100}, {id:1, i:'👑', p:500}, {id:2, i:'🕶️', p:150}];
 
-    window.st = { coins: 150, pets: [], activeIdx: 0, schedule: {}, inventory: {}, ownedAcc: [], completed: [], vacation: false };
+    // LOCAL DATA FALLBACK
+    let defaultState = { coins: 150, pets: [], activeIdx: 0, schedule: {}, inventory: {}, ownedAcc: [], completed: [] };
+    window.st = JSON.parse(localStorage.getItem('lifepet_data')) || defaultState;
     let selT = "";
 
     onAuthStateChanged(auth, async u => {
         if(u) {
             document.getElementById('auth-overlay').classList.add('hidden');
             const s = await getDoc(doc(db, "users", u.uid));
-            if(s.exists()) { st = s.data(); document.getElementById('game-ui').classList.remove('hidden'); render(); }
-            else { document.getElementById('adopt-overlay').classList.remove('hidden'); }
+            if(s.exists()) { st = s.data(); }
+            document.getElementById('game-ui').classList.remove('hidden');
+            if(st.pets.length === 0) document.getElementById('adopt-overlay').classList.remove('hidden');
+            render();
             onSnapshot(doc(db,"users",u.uid), d => { if(d.exists()){ st = d.data(); render(); }});
         }
     });
 
     window.handleAuth = () => {
         const e = document.getElementById('email').value, p = document.getElementById('password').value;
-        signInWithEmailAndPassword(auth,e,p).catch(() => createUserWithEmailAndPassword(auth,e,p));
+        signInWithEmailAndPassword(auth,e,p).catch(() => createUserWithEmailAndPassword(auth,e,p).catch(() => {
+            alert("Offline modus geactiveerd.");
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            if(st.pets.length === 0) document.getElementById('adopt-overlay').classList.remove('hidden');
+            render();
+        }));
     };
 
-    window.setT = (t, el) => { selT = t; document.querySelectorAll('.box').forEach(b=>b.classList.remove('selected')); el.classList.add('selected'); };
+    window.pickT = (t, el) => { selT = t; document.querySelectorAll('#pet-choices .box').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
     window.confirmPet = () => {
         const n = document.getElementById('new-name').value;
-        if(!n || !selT) return alert("Naam en dier kiezen!");
+        if(!n || !selT) return alert("Kies een naam en dier!");
         st.pets = [{name: n, type: selT, energy: 100, happy: 100, acc: ""}];
         document.getElementById('adopt-overlay').classList.add('hidden');
-        document.getElementById('game-ui').classList.remove('hidden');
         sync();
     };
 
@@ -143,34 +156,29 @@
     window.quickAdd = (d, t) => { const i = document.getElementById('in-'+d); i.value = i.value ? i.value+", "+t : t; };
     window.savePlan = () => {
         DAYS.forEach(d => { const v = document.getElementById('in-'+d).value; st.schedule[d] = v.split(',').map(s=>s.trim()).filter(s=>s!==""); });
-        sync(); alert("Plan opgeslagen!");
+        sync(); alert("Schema opgeslagen!");
     };
 
     window.doTask = (t) => {
         const p = st.pets[st.activeIdx]; const k = t + new Date().toDateString();
         if(p.energy >= 10 && !st.completed.includes(k)) { st.completed.push(k); st.coins += 25; p.energy -= 10; sync(); }
-        else if(p.energy < 10) alert("Te moe!");
     };
 
     window.buyF = (f) => { if(st.coins >= f.p) { st.coins -= f.p; st.inventory[f.id] = (st.inventory[f.id]||0)+1; sync(); }};
     window.feed = (id) => { if(st.inventory[id]>0) { st.inventory[id]--; st.pets[st.activeIdx].energy = Math.min(100, st.pets[st.activeIdx].energy+30); sync(); }};
-    window.buyA = (id) => {
-        const a = ACCS[id]; const p = st.pets[st.activeIdx];
-        if(st.ownedAcc.includes(id)) p.acc = (p.acc === a.i) ? "" : a.i;
-        else if(st.coins >= a.p) { st.coins -= a.p; st.ownedAcc.push(id); p.acc = a.i; }
-        sync();
-    };
-
-    async function sync() { if(auth.currentUser) await setDoc(doc(db,"users",auth.currentUser.uid), st); }
-    window.logout = () => signOut(auth).then(()=>location.reload());
+    
+    async function sync() { 
+        localStorage.setItem('lifepet_data', JSON.stringify(st));
+        if(auth.currentUser) await setDoc(doc(db,"users",auth.currentUser.uid), st);
+        render();
+    }
 
     function render() {
-        if(!st.pets[st.activeIdx]) return;
+        if(!st.pets || st.pets.length === 0) return;
         const p = st.pets[st.activeIdx]; const day = DAYS[(new Date().getDay()+6)%7];
         document.querySelectorAll('.coin-val').forEach(el=>el.innerText = st.coins);
         document.getElementById('pet-view').innerText = p.type;
         document.getElementById('name-label').innerText = p.name;
-        document.getElementById('pet-acc').innerText = p.acc || "";
         document.getElementById('e-fill').style.width = p.energy + "%";
         document.getElementById('h-fill').style.width = p.happy + "%";
 
@@ -186,8 +194,7 @@
         }
 
         const tUI = document.getElementById('today-ui'); tUI.innerHTML = "";
-        if(st.vacation) tUI.innerHTML = "🌴 Vakantiemodus aan!";
-        else (st.schedule[day]||[]).forEach(t => {
+        (st.schedule[day]||[]).forEach(t => {
             const d = st.completed.includes(t+new Date().toDateString());
             tUI.innerHTML += `<div class="card" onclick="doTask('${t}')" style="opacity:${d?0.5:1}"><b>${t}</b> ${d?'✅':''}</div>`;
         });
@@ -196,14 +203,12 @@
         FOOD.forEach(f => mUI.innerHTML += `<div class="box" onclick='buyF(${JSON.stringify(f)})'>${f.i}<br><small>💰${f.p}</small></div>`);
         
         const bUI = document.getElementById('boutique-ui'); bUI.innerHTML = "";
-        ACCS.forEach(a => {
-            const o = st.ownedAcc.includes(a.id);
-            bUI.innerHTML += `<div class="box ${o?'selected':''}" onclick="buyA(${a.id})">${a.i}<br><small>${o?'AAN/AF':'💰'+a.p}</small></div>`;
-        });
+        ACCS.forEach(a => bUI.innerHTML += `<div class="box">${a.i}<br><small>💰${a.p}</small></div>`);
 
         const iUI = document.getElementById('inv-food'); iUI.innerHTML = "";
         for(let k in st.inventory) if(st.inventory[k]>0) iUI.innerHTML += `<div class="box" onclick="feed('${k}')">${FOOD.find(x=>x.id===k).i} x${st.inventory[k]}</div>`;
     }
+    window.logout = () => { localStorage.clear(); signOut(auth).then(()=>location.reload()); };
 </script>
 </body>
 </html>
