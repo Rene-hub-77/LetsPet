@@ -3,152 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet v6.0 - Ultimate Edition</title>
+    <title>LifePet v8.0 - De Werkende Versie</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --energy: #3498db; --night: #2d3436; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; transition: 0.5s; overflow-x: hidden; }
-        body.night { background: var(--night); color: white; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        body.night .nav { background: #333; }
-        .nav-item { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-size: 20px; transition: 0.3s; }
-        .nav-item.active { color: var(--p); transform: translateY(-5px); }
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --gold: #f1c40f; --energy: #3498db; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-size: 24px; }
+        .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: var(--card); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: #333; border: 1px solid #eee; }
-        .btn { background: var(--p); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn { background: var(--p); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .box { background: #f9f9f9; padding: 12px; text-align: center; border-radius: 15px; cursor: pointer; border: 1px solid #eee; transition: 0.2s; }
-        .box:active { transform: scale(0.95); }
-        .box.selected { border: 2px solid var(--p); background: #f3f0ff; }
+        .box { background: #eee; padding: 10px; text-align: center; border-radius: 12px; cursor: pointer; }
         .stat-bar { height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; margin: 10px 0; }
-        .fill { height: 100%; background: var(--energy); transition: 0.5s; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
-        .quick-tag { font-size: 11px; background: #f0f0f0; padding: 5px 10px; border-radius: 15px; margin: 3px; display: inline-block; cursor: pointer; border: 1px solid #ddd; }
-        .pet-display { font-size: 90px; position: relative; display: inline-block; margin: 20px 0; }
-        .acc-overlay { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 40px; pointer-events: none; }
+        .fill { height: 100%; background: var(--energy); width: 100%; }
+        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .overlay { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="auth-screen" style="padding: 40px 20px; text-align: center;">
-    <h1 style="color: var(--p);">LifePet v6.0 🐾</h1>
-    <div id="auth-inputs">
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="pass" placeholder="Wachtwoord">
-        <button class="btn" onclick="handleAuth()">LOG IN / START</button>
+<div id="setup" class="overlay">
+    <h2 style="color: var(--p);">Kies je Pet & Naam</h2>
+    <input type="text" id="pet-name-in" placeholder="Naam van je pet...">
+    <div class="grid" style="font-size: 30px; margin: 20px 0;">
+        <div class="box" onclick="window.chosen='🐶'">🐶</div>
+        <div class="box" onclick="window.chosen='🐱'">🐱</div>
+        <div class="box" onclick="window.chosen='🐲'">🐲</div>
+        <div class="box" onclick="window.chosen='🦊'">🦊</div>
+        <div class="box" onclick="window.chosen='🐼'">🐼</div>
+        <div class="box" onclick="window.chosen='🦄'">🦄</div>
+        <div class="box" onclick="window.chosen='🐰'">🐰</div>
+        <div class="box" onclick="window.chosen='🦁'">🦁</div>
+        <div class="box" onclick="window.chosen='🐨'">🐨</div>
     </div>
-    
-    <div id="setup-inputs" style="display:none; margin-top:20px;">
-        <h3>Kies je Pet & Naam</h3>
-        <input type="text" id="petName" placeholder="Hoe heet je pet?">
-        <div class="grid" id="pet-choice-grid">
-            </div>
-        <button class="btn" onclick="completeSetup()" style="background:#00b894;">ADOPTEER PET</button>
-    </div>
+    <button class="btn" onclick="startApp()">START AVONTUUR</button>
 </div>
 
-<div id="game-ui" style="display:none;">
-    <div id="p1" class="page active">
+<div id="game-ui" class="hidden">
+    <div id="p-status" class="page active">
         <div class="card" style="text-align: center;">
-            <div id="ui-evo" style="font-size: 10px; color: var(--p); font-weight: bold; text-transform: uppercase;">Ei-Fase</div>
-            <div class="pet-display">
-                <div id="ui-acc" class="acc-overlay"></div>
-                <div id="ui-emoji">🥚</div>
-            </div>
-            <h2 id="ui-name" style="margin:0">Naam</h2>
-            <div style="background: var(--gold); color: white; padding: 10px; border-radius: 15px; font-weight: bold; margin-top: 10px;">💰 <span id="ui-coins">0</span></div>
+            <div id="evo-label" style="font-size: 12px; font-weight: bold; color: var(--p);">EI-FASE</div>
+            <div id="pet-display" style="font-size: 90px; margin: 20px 0;">🥚</div>
+            <h2 id="name-display" style="margin:0">Naam</h2>
+            <div style="background: var(--gold); color: white; padding: 10px; border-radius: 15px; font-weight: bold; margin-top: 10px;">💰 <span id="coin-display">0</span></div>
             <div style="text-align: left; margin-top: 20px;">
-                <small>Energie ⚡</small><div class="stat-bar"><div id="ui-energy-bar" class="fill"></div></div>
+                <small>Energie ⚡</small>
+                <div class="stat-bar"><div id="energy-bar" class="fill"></div></div>
             </div>
         </div>
         <div class="card">
-            <b>Rugzak (Klik om te gebruiken):</b>
-            <div id="ui-inv" class="grid" style="margin-top:10px;"></div>
+            <b>Rugzak (Eten):</b>
+            <div id="inv-display" class="grid"></div>
         </div>
     </div>
 
-    <div id="p2" class="page">
+    <div id="p-planner" class="page">
         <h3>📅 Weekschema</h3>
-        <div id="planner-fields"></div>
-        <button class="btn" style="background:#00b894;" onclick="saveData()">💾 OPSLAAN</button>
-        <hr>
-        <h4>Taken voor Vandaag</h4>
-        <div id="ui-today"></div>
+        <div class="card">
+            Ma: <input id="in-Maandag">
+            Di: <input id="in-Dinsdag">
+            Wo: <input id="in-Woensdag">
+            Do: <input id="in-Donderdag">
+            Vr: <input id="in-Vrijdag">
+            Za: <input id="in-Zaterdag">
+            Zo: <input id="in-Zondag">
+            <button class="btn" onclick="saveData()">OPSLAAN</button>
+        </div>
+        <h4>Taken van Vandaag</h4>
+        <div id="today-tasks"></div>
     </div>
 
-    <div id="p3" class="page">
+    <div id="p-shop" class="page">
         <h3>🛍️ Winkel</h3>
-        <div class="card">
-            <p><b>🍏 Markt (Eten & Energie)</b></p>
-            <div class="grid">
-                <div class="box" onclick="buy('🍎', 10, 'food')">🍎<br><small>💰10</small></div>
-                <div class="box" onclick="buy('🍕', 40, 'food')">🍕<br><small>💰40</small></div>
-                <div class="box" onclick="buy('🍪', 5, 'food')">🍪<br><small>💰5</small></div>
-                <div class="box" onclick="buy('🍔', 60, 'food')">🍔<br><small>💰60</small></div>
-            </div>
-        </div>
-        <div class="card">
-            <p><b>🎩 Boutique (Accessoires)</b></p>
-            <div class="grid">
-                <div class="box" onclick="buy('🎩', 100, 'acc')">🎩<br><small>💰100</small></div>
-                <div class="box" onclick="buy('👑', 500, 'acc')">👑<br><small>💰500</small></div>
-                <div class="box" onclick="buy('🕶️', 150, 'acc')">🕶️<br><small>💰150</small></div>
-                <div class="box" onclick="buy('🎀', 80, 'acc')">🎀<br><small>💰80</small></div>
-            </div>
-        </div>
+        <div class="card" onclick="buy('🍎', 10)">🍎 Appel (💰10)</div>
+        <div class="card" onclick="buy('🍕', 40)">🍕 Pizza (💰40)</div>
+        <div class="card" onclick="buy('🍪', 5)">🍪 Koekje (💰5)</div>
+        <hr>
+        <div class="card" onclick="buy('🎩', 100, true)">🎩 Hoed (💰100)</div>
+        <div class="card" onclick="buy('👑', 500, true)">👑 Kroon (💰500)</div>
     </div>
 
     <div class="nav">
-        <div class="nav-item" onclick="show('p1')">🐾</div>
-        <div class="nav-item" onclick="show('p2')">📅</div>
-        <div class="nav-item" onclick="show('p3')">🛍️</div>
+        <div class="nav-item" onclick="show('status')">🐾</div>
+        <div class="nav-item" onclick="show('planner')">📅</div>
+        <div class="nav-item" onclick="show('shop')">🛍️</div>
+        <div class="nav-item" onclick="localStorage.clear(); location.reload();">🔄</div>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
+    // DATA OPSLAG
+    let d = JSON.parse(localStorage.getItem('lifepet_final')) || {
+        active: false, name: "", type: "🐶", coins: 0, energy: 100, inv: {}, plan: {}, done: [], acc: ""
+    };
+    window.chosen = "";
 
-    const firebaseConfig = { apiKey: "AIzaSyCNeVLw0NYgKQrpBC7MuArQAJ5Kli9Xd3o", authDomain: "petlife-68738.firebaseapp.com", projectId: "petlife-68738", appId: "1:942954717479:web:6a8fafe8c7b17d00444902" };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    function startApp() {
+        const n = document.getElementById('pet-name-in').value;
+        if(!n || !window.chosen) return alert("Kies een naam en klik op een dier!");
+        d.name = n; d.type = window.chosen; d.active = true;
+        saveData();
+    }
 
-    const DAYS = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
-    const PETS = ["🐶","🐱","🐲","🦊","🐼","🦄","🦁","🐰","🐨","🐯","🐣","🐷"];
-    const QUICK = ["🧹 Afwassen", "🏃 Wandelen", "🧘 Yoga", "🧺 Was doen", "🛒 Boodschappen"];
+    function show(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('p-' + id).classList.add('active');
+        render();
+    }
 
-    let st = { setupDone: false, name: "Pet", type: "🐶", coins: 0, energy: 100, inv: {}, plan: {}, done: [], currentAcc: "" };
-    let tempType = "🐶";
+    function buy(item, price, isAcc) {
+        if(d.coins >= price) {
+            d.coins -= price;
+            if(isAcc) d.acc = item; else d.inv[item] = (d.inv[item] || 0) + 1;
+            saveData();
+        } else { alert("Niet genoeg munten!"); }
+    }
 
-    window.handleAuth = () => {
-        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(!e || !p) return alert("Vul e-mail en wachtwoord in");
-        signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
+    function saveData() {
+        ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"].forEach(day => {
+            const el = document.getElementById('in-' + day);
+            if(el) d.plan[day] = el.value.split(',').map(s => s.trim()).filter(s => s !== "");
+        });
+        localStorage.setItem('lifepet_final', JSON.stringify(d));
+        render();
+    }
+
+    function render() {
+        if(!d.active) return;
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('game-ui').classList.remove('hidden');
+
+        // Evolutie & Naam
+        let stage = d.coins < 100 ? "EI-FASE" : (d.coins < 500 ? "BABY" : "VOLWASSEN");
+        document.getElementById('pet-display').innerText = d.coins < 100 ? "🥚" : d.type;
+        document.getElementById('evo-label').innerText = stage;
+        document.getElementById('name-display').innerText = d.name + (d.acc ? " " + d.acc : "");
+        document.getElementById('coin-display').innerText = d.coins;
+        document.getElementById('energy-bar').style.width = d.energy + "%";
+
+        // Planner invullen
+        for(let day in d.plan) {
+            if(document.getElementById('in-'+day)) document.getElementById('in-'+day).value = d.plan[day].join(', ');
+        }
+
+        // Taken van vandaag
+        const days = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+        const today = days[new Date().getDay()];
+        const taskDiv = document.getElementById('today-tasks');
+        taskDiv.innerHTML = "";
+        (d.plan[today] || []).forEach(t => {
+            const key = t + new Date().toDateString();
+            const done = d.done.includes(key);
+            taskDiv.innerHTML += `<div class="card" onclick="doTask('${t}')" style="opacity:${done?0.5:1}"><b>${t}</b> ${done?'✅':'+💰20'}</div>`;
+        });
+
+        // Rugzak
+        const invDiv = document.getElementById('inv-display');
+        invDiv.innerHTML = "";
+        for(let item in d.inv) if(d.inv[item] > 0) {
+            invDiv.innerHTML += `<div class="box" onclick="eat('${item}')">${item} x${d.inv[item]}</div>`;
+        }
+    }
+
+    window.doTask = (t) => {
+        const key = t + new Date().toDateString();
+        if(d.energy >= 10 && !d.done.includes(key)) {
+            d.done.push(key); d.coins += 20; d.energy -= 10; saveData();
+        }
     };
 
-    onAuthStateChanged(auth, async user => {
-        if(user) {
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if(snap.exists()) {
-                st = snap.data();
-                startApp();
-            } else {
-                showSetup();
-            }
-        }
-    });
+    window.eat = (item) => {
+        d.inv[item]--; d.energy = Math.min(100, d.energy + 20); saveData();
+    };
 
-    function showSetup() {
-        document.getElementById('auth-inputs').style.display = 'none';
-        document.getElementById('setup-inputs').style.display = 'block';
-        const grid = document.getElementById('pet-choice-grid');
-        PETS.forEach(p => {
-            const b = document.createElement('div');
-            b.className = 'box';
-            b.innerText = p;
-            b.onclick = () => { 
-                tempType = p; 
-                document
+    render();
+</script>
+</body>
+</html>
