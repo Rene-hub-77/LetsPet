@@ -3,72 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet v3.1 - Evolution Burst</title>
+    <title>LifePet v3.2 - Final Stable Edition</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --energy: #3498db; --heart: #ff7675; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; overflow-x: hidden; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --energy: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #333; }
         
         /* Navigatie */
-        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 11px; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         
         /* Layout */
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: white; padding: 15px; border-radius: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; position: relative; }
+        .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; position: relative; }
         
-        /* Pet View & Animatie */
-        .pet-stage { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; }
-        .pet-main { font-size: 80px; transition: 0.5s; z-index: 5; }
-        
-        /* De Evolutie Animatie Class */
-        .evolve-anim { animation: shakeBurst 1.5s cubic-bezier(.36,.07,.19,.97) both; }
+        /* Pet & Animatie */
+        .pet-stage { height: 150px; display: flex; justify-content: center; align-items: center; position: relative; font-size: 80px; }
+        .evolve-anim { animation: shakeBurst 1.2s ease-in-out; }
         @keyframes shakeBurst {
-            10%, 90% { transform: translate3d(-1px, 0, 0) scale(1.1); }
-            20%, 80% { transform: translate3d(2px, 0, 0) scale(1.2); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0) scale(1.3); }
-            40%, 60% { transform: translate3d(4px, 0, 0) scale(1.4); }
-            100% { transform: scale(1); filter: brightness(1.5) contrast(1.2); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(5deg); filter: brightness(1.2); }
         }
 
-        .confetti { position: absolute; pointer-events: none; animation: fly 1s ease-out forwards; }
-        @keyframes fly { to { transform: translateY(-100px) translateX(var(--x)); opacity: 0; } }
-
-        .stat-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 5px 0 10px 0; }
-        .fill-e { height: 100%; background: var(--energy); transition: 0.5s; }
+        .stat-bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+        .fill { height: 100%; background: var(--energy); transition: 0.3s; width: 100%; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .box { background: #f9f9f9; padding: 12px; border-radius: 18px; text-align: center; cursor: pointer; border: 2px solid transparent; }
-        .btn { background: var(--p); color: white; border: none; padding: 14px; border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; }
+        .box { background: #f9f9f9; padding: 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #eee; }
+        
+        input[type="text"] { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 8px; box-sizing: border-box; }
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
+        .overlay { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="setup" class="overlay hidden" style="position:fixed; inset:0; background:white; z-index:3000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+<div id="setup-screen" class="overlay">
     <h2 style="color:var(--p)">Welkom bij LifePet</h2>
     <input type="text" id="setup-name" placeholder="Naam van je pet...">
-    <div class="grid" style="font-size: 35px; margin: 20px 0;">
-        <div class="box" onclick="window.tempT='dog';alert('Hond!')">🐶</div>
-        <div class="box" onclick="window.tempT='dragon';alert('Draak!')">🐲</div>
-        <div class="box" onclick="window.tempT='cat';alert('Kat!')">🐱</div>
+    <p>Kies een dier:</p>
+    <div class="grid" style="font-size: 30px; margin-bottom: 20px;">
+        <div class="box" onclick="window.selT='dog';alert('Hond!')">🐶</div>
+        <div class="box" onclick="window.selT='dragon';alert('Draak!')">🐲</div>
+        <div class="box" onclick="window.selT='cat';alert('Kat!')">🐱</div>
     </div>
-    <button class="btn" onclick="initApp()">START</button>
+    <button class="btn" onclick="startApp()">START</button>
 </div>
 
-<div id="game-ui">
-    <div id="page-status" class="page active">
+<div id="main-ui" class="hidden">
+    <div id="p-status" class="page active">
         <div class="card" style="text-align: center;">
-            <div id="growth-tag" style="background:var(--p); color:white; font-size:10px; padding:2px 10px; border-radius:10px; display:inline-block;">Ei</div>
-            <div class="pet-stage" id="burst-zone">
-                <div id="ui-pet" class="pet-main">🥚</div>
+            <div id="growth-label" style="background:var(--p); color:white; font-size:10px; padding:2px 8px; border-radius:10px; display:inline-block;">Ei</div>
+            <div class="pet-stage">
+                <span id="ui-acc" style="position:absolute; top:10px; font-size:40px;"></span>
+                <span id="ui-emoji">🥚</span>
             </div>
-            <h2 id="ui-name">Naam</h2>
-            <div style="background:var(--gold); color:white; padding:12px; border-radius:15px; font-weight:bold;">💰 <span id="ui-coins">0</span></div>
+            <h2 id="ui-name" style="margin:0">Pet</h2>
             <div style="text-align: left; margin-top: 15px;">
-                <small>Energie ⚡</small><div class="stat-bar"><div id="bar-e" class="fill-e"></div></div>
+                <small>Energie ⚡</small>
+                <div class="stat-bar"><div id="ui-energy" class="fill"></div></div>
+            </div>
+            <div style="background: var(--gold); color: white; padding: 10px; border-radius: 15px; font-weight: bold;">
+                💰 <span id="ui-coins">0</span>
             </div>
         </div>
         <div class="card">
@@ -77,17 +74,39 @@
         </div>
     </div>
 
-    <div id="page-planner" class="page">
+    <div id="p-planner" class="page">
         <h3>📅 Weekschema</h3>
-        <div id="planner-list"></div>
-        <button class="btn" onclick="saveData()">OPSLAAN</button>
-        <hr>
-        <div id="today-tasks"></div>
+        <div class="card">
+            <b>Maandag:</b> <input type="text" id="in-Maandag" placeholder="Bv: Lopen, Afwas">
+            <b>Dinsdag:</b> <input type="text" id="in-Dinsdag">
+            <b>Woensdag:</b> <input type="text" id="in-Woensdag">
+            <b>Donderdag:</b> <input type="text" id="in-Donderdag">
+            <b>Vrijdag:</b> <input type="text" id="in-Vrijdag">
+            <b>Zaterdag:</b> <input type="text" id="in-Zaterdag">
+            <b>Zondag:</b> <input type="text" id="in-Zondag">
+            <button class="btn" onclick="save()">OPSLAAN</button>
+        </div>
+        <h4>Taken voor Vandaag</h4>
+        <div id="ui-today"></div>
     </div>
 
-    <div id="page-shop" class="page">
+    <div id="p-shop" class="page">
         <h3>🛍️ Winkel</h3>
-        <div id="market-ui" class="grid"></div>
+        <div class="card">
+            <p><b>Markt (Eten)</b></p>
+            <div class="grid">
+                <div class="box" onclick="buy('🍎', 10, false)">🍎<br><small>💰10</small></div>
+                <div class="box" onclick="buy('🍕', 40, false)">🍕<br><small>💰40</small></div>
+                <div class="box" onclick="buy('🍪', 5, false)">🍪<br><small>💰5</small></div>
+            </div>
+        </div>
+        <div class="card">
+            <p><b>Boutique (Accessoires)</b></p>
+            <div class="grid">
+                <div class="box" onclick="buy('🎩', 100, true)">🎩<br><small>💰100</small></div>
+                <div class="box" onclick="buy('👑', 500, true)">👑<br><small>💰500</small></div>
+            </div>
+        </div>
     </div>
 
     <div class="nav">
@@ -101,108 +120,89 @@
     const DAYS = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
     const EVOS = { dog: ["🥚", "🐶", "🐕"], dragon: ["🥚", "🐲", "🦖"], cat: ["🥚", "🐱", "🐈"] };
     
-    let state = JSON.parse(localStorage.getItem('lifepet_v31')) || {
-        setup: false, name: "", type: "dog", coins: 0, energy: 100, inventory: {}, schedule: {}, completed: [], lastStage: "Ei"
+    let st = JSON.parse(localStorage.getItem('lp_32')) || {
+        init: false, name: "", type: "dog", coins: 0, energy: 100, inv: {}, plan: {}, done: [], acc: "", stage: "Ei"
     };
 
-    function initApp() {
+    function startApp() {
         const n = document.getElementById('setup-name').value;
-        if(!n || !window.tempT) return alert("Kies naam en dier!");
-        state.name = n; state.type = window.tempT; state.setup = true;
-        saveData(); render();
+        if(!n || !window.selT) return alert("Naam en dier kiezen!");
+        st.name = n; st.type = window.selT; st.init = true;
+        save(); render();
     }
 
     function nav(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
+        document.getElementById('p-' + id).classList.add('active');
         el.classList.add('active');
         render();
     }
 
-    function triggerEvolution() {
-        const petEl = document.getElementById('ui-pet');
-        petEl.classList.add('evolve-anim');
-        
-        // Confetti effect
-        for(let i=0; i<15; i++) {
-            const c = document.createElement('div');
-            c.className = 'confetti';
-            c.innerText = '✨';
-            c.style.left = '50%';
-            c.style.setProperty('--x', (Math.random() * 200 - 100) + 'px');
-            document.getElementById('burst-zone').appendChild(c);
-            setTimeout(() => c.remove(), 1000);
-        }
-
-        setTimeout(() => petEl.classList.remove('evolve-anim'), 1500);
+    function buy(item, price, isAcc) {
+        if(st.coins >= price) {
+            st.coins -= price;
+            if(isAcc) st.acc = item; else st.inv[item] = (st.inv[item] || 0) + 1;
+            save(); render();
+        } else alert("Te weinig munten!");
     }
 
-    function saveData() {
+    function save() {
         DAYS.forEach(d => {
-            const el = document.getElementById('in-' + d);
-            if(el) state.schedule[d] = el.value.split(',').map(s => s.trim()).filter(s => s !== "");
+            const input = document.getElementById('in-' + d);
+            if(input) st.plan[d] = input.value.split(',').map(s => s.trim()).filter(s => s !== "");
         });
-        localStorage.setItem('lifepet_v31', JSON.stringify(state));
+        localStorage.setItem('lp_32', JSON.stringify(st));
+    }
+
+    function doTask(t) {
+        const key = t + new Date().toDateString();
+        if(st.energy >= 10 && !st.done.includes(key)) {
+            st.done.push(key); st.coins += 30; st.energy -= 10;
+            save(); render();
+        } else if(st.energy < 10) alert("Moe! Eet wat.");
     }
 
     function render() {
-        if(!state.setup) { document.getElementById('setup').classList.remove('hidden'); return; }
-        document.getElementById('setup').classList.add('hidden');
+        if(!st.init) { document.getElementById('setup-screen').classList.remove('hidden'); return; }
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('main-ui').classList.remove('hidden');
 
-        let currentStage = "Ei";
-        if(state.coins > 200) currentStage = "Baby";
-        if(state.coins > 800) currentStage = "Volwassen";
+        // Groei
+        let curStage = "Ei"; 
+        if(st.coins > 200) curStage = "Baby";
+        if(st.coins > 800) curStage = "Volwassen";
 
-        // Check of we moeten animeren
-        if(currentStage !== state.lastStage) {
-            triggerEvolution();
-            state.lastStage = currentStage;
-            localStorage.setItem('lifepet_v31', JSON.stringify(state));
+        if(curStage !== st.stage) {
+            document.getElementById('ui-emoji').classList.add('evolve-anim');
+            setTimeout(() => document.getElementById('ui-emoji').classList.remove('evolve-anim'), 1200);
+            st.stage = curStage;
         }
 
-        const emoji = currentStage === "Ei" ? EVOS[state.type][0] : 
-                      currentStage === "Baby" ? EVOS[state.type][1] : EVOS[state.type][2];
-
-        document.getElementById('growth-tag').innerText = currentStage;
-        document.getElementById('ui-pet').innerText = emoji;
-        document.getElementById('ui-name').innerText = state.name;
-        document.getElementById('ui-coins').innerText = state.coins;
-        document.getElementById('bar-e').style.width = state.energy + "%";
-
-        // Planner & Taken
-        const pList = document.getElementById('planner-list');
-        if(pList.innerHTML === "") {
-            DAYS.forEach(d => {
-                const val = state.schedule[d] ? state.schedule[d].join(', ') : "";
-                pList.innerHTML += `<div><b>${d}</b><input type="text" id="in-${d}" value="${val}" placeholder="Bv: Lopen"></div>`;
-            });
-        }
+        const emoji = curStage === "Ei" ? EVOS[st.type][0] : (curStage === "Baby" ? EVOS[st.type][1] : EVOS[st.type][2]);
         
+        document.getElementById('ui-emoji').innerText = emoji;
+        document.getElementById('growth-label').innerText = curStage;
+        document.getElementById('ui-name').innerText = st.name;
+        document.getElementById('ui-coins').innerText = st.coins;
+        document.getElementById('ui-energy').style.width = st.energy + "%";
+        document.getElementById('ui-acc').innerText = st.acc;
+
+        // Sync inputs
+        DAYS.forEach(d => { if(document.getElementById('in-'+d)) document.getElementById('in-'+d).value = (st.plan[d] || []).join(', '); });
+
+        // Today
+        const tDiv = document.getElementById('ui-today'); tDiv.innerHTML = "";
         const today = DAYS[new Date().getDay()];
-        const tUI = document.getElementById('today-tasks');
-        tUI.innerHTML = `<h4>Taken voor vandaag (${today}):</h4>`;
-        (state.schedule[today] || []).forEach(t => {
-            const done = state.completed.includes(t + new Date().toDateString());
-            tUI.innerHTML += `<div class="card" onclick="doTask('${t}')" style="opacity:${done?0.5:1}"><b>${t}</b> ${done?'✅':'+💰30'}</div>`;
+        (st.plan[today] || []).forEach(t => {
+            const isDone = st.done.includes(t + new Date().toDateString());
+            tDiv.innerHTML += `<div class="card" onclick="doTask('${t}')" style="opacity:${isDone?0.5:1}"><b>${t}</b> ${isDone?'✅':'+💰30'}</div>`;
         });
 
-        // Market
-        const mUI = document.getElementById('market-ui');
-        mUI.innerHTML = `<div class="box" onclick="buy('🍎',10)">🍎<br>💰10</div><div class="box" onclick="buy('🍕',40)">🍕<br>💰40</div>`;
+        // Inv
+        const iDiv = document.getElementById('ui-inv'); iDiv.innerHTML = "";
+        for(let k in st.inv) if(st.inv[k] > 0) iDiv.innerHTML += `<div class="box" onclick="st.inv['${k}']--; st.energy=Math.min(100,st.energy+25); save(); render();">${k}<br><small>x${st.inv[k]}</small></div>`;
     }
-
-    window.doTask = (t) => {
-        const k = t + new Date().toDateString();
-        if(state.energy >= 10 && !state.completed.includes(k)) {
-            state.completed.push(k); state.coins += 30; state.energy -= 10;
-            saveData(); render();
-        }
-    };
-
-    window.buy = (i, p) => {
-        if(state.coins >= p) { state.coins -= p; state.inventory[i] = (state.inventory[i]||0)+1; saveData(); render(); }
-    };
 
     render();
 </script>
