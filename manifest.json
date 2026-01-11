@@ -1,0 +1,17 @@
+{
+  "name": "LifePet Cloud",
+  "short_name": "LifePet",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#6c5ce7",
+  "theme_color": "#6c5ce7",
+  "description": "Zorg voor je Pet door voor jezelf te zorgen.",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
