@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifePet v1.18 - Weekplanner</title>
+    <title>LifePet v1.21 - Ultimate Edition</title>
     <style>
-        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --move: #0984e3; --home: #00b894; --gold: #f1c40f; --red: #ff7675; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        :root { --p: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --gold: #f1c40f; --home: #00b894; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
         
-        /* UI Elements */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-radius: 25px 25px 0 0; }
         .nav-item { text-align: center; color: #ccc; cursor: pointer; flex: 1; font-size: 11px; }
         .nav-item.active { color: var(--p); font-weight: bold; }
@@ -18,65 +17,68 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .btn-p { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
         
-        /* Planner Styling */
-        .day-box { border-bottom: 1px solid #eee; padding: 10px 0; }
-        .day-name { font-weight: bold; color: var(--p); display: block; margin-bottom: 5px; }
-        .v-mode { background: #ffeaa7; padding: 10px; border-radius: 15px; text-align: center; font-weight: bold; margin-bottom: 15px; display: none; }
+        /* Pet & Shop */
+        .pet-stage { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; background: white; border-radius: 30px; margin-bottom: 20px; }
+        #pet-acc-view { position: absolute; font-size: 40px; top: 30px; z-index: 10; }
+        .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .shop-card { background: #f8f9fa; border-radius: 15px; padding: 10px; text-align: center; border: 2px solid transparent; cursor: pointer; }
+        .shop-card.owned { border-color: var(--home); background: #e3fcef; }
         
-        .btn-p { background: var(--p); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 5px; }
-        input, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
-        
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        .overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
-        .overlay { position: fixed; inset: 0; background: var(--p); z-index: 2000; display: flex; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
 <div id="auth-overlay" class="overlay">
-    <div style="background: white; color: #333; padding: 30px; border-radius: 25px; width: 280px; text-align: center;">
-        <h2>LifePet Cloud</h2>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="password" placeholder="Wachtwoord">
-        <button class="btn-p" onclick="handleAuth()">START</button>
+    <div style="background: white; padding: 30px; border-radius: 25px; width: 280px; text-align: center;">
+        <h2 style="color: var(--p);">LifePet</h2>
+        <input type="email" id="email" placeholder="E-mail" style="width:100%; margin-bottom:10px; padding:10px; border-radius:10px; border:1px solid #ddd;">
+        <input type="password" id="password" placeholder="Wachtwoord" style="width:100%; margin-bottom:10px; padding:10px; border-radius:10px; border:1px solid #ddd;">
+        <button class="btn-p" onclick="handleAuth()">LOG IN / START</button>
     </div>
 </div>
 
 <div id="game-ui" class="hidden">
     <div id="page-pet" class="page active">
-        <div id="vacation-banner" class="v-mode">🌴 VAKANTIEMODUS ACTIEF</div>
-        <div style="text-align: center;">
-            <div id="pet-main" style="font-size: 100px;">🥚</div>
-            <h2 id="pet-name">Boris</h2>
-            <div class="card" style="background: var(--gold); color: white;">💰 <span class="coins">0</span> Munten</div>
-            <button class="btn-p" style="font-size: 20px; padding: 20px;" onclick="nav('tasks', document.querySelectorAll('.nav-item')[1])">GA NAAR TAKEN</button>
+        <div class="pet-stage">
+            <div id="pet-acc-view"></div>
+            <div id="pet-main" style="font-size: 90px;">🥚</div>
         </div>
+        <div class="card" style="text-align: center;">
+            <h2 style="margin:0;">Mijn Pet</h2>
+            <div style="background: var(--gold); color: white; padding: 10px; border-radius: 15px; font-weight: bold; margin: 15px 0;">💰 <span class="coin-display">0</span></div>
+            <button class="btn-p" onclick="nav('tasks', document.querySelectorAll('.nav-item')[1])">DAGELIJKSE TAKEN</button>
+        </div>
+    </div>
+
+    <div id="page-tasks" class="page">
+        <h3 id="day-title">Taken van Vandaag</h3>
+        <div id="today-list"></div>
+    </div>
+
+    <div id="page-shop" class="page">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+            <h3 style="margin:0;">Boutique</h3>
+            <div style="color: var(--gold); font-weight: bold;">💰 <span class="coin-display">0</span></div>
+        </div>
+        <div id="shop-grid" class="shop-grid"></div>
     </div>
 
     <div id="page-planner" class="page">
         <h3>📅 Weekplanner</h3>
-        <div class="card">
-            <label><b>Vakantiemodus:</b></label>
-            <input type="checkbox" id="v-toggle" onchange="toggleVacation()" style="width: 20px;">
-        </div>
-        
-        <div class="card" id="planner-list">
-            </div>
-        <button class="btn-p" onclick="savePlan()">Schema Opslaan</button>
-    </div>
-
-    <div id="page-tasks" class="page">
-        <h3 id="current-day-title">Taken van Vandaag</h3>
-        <div id="today-list"></div>
-        <hr>
-        <small>Extra taak toevoegen:</small>
-        <select id="quick-add"><option>Vaatwasser</option><option>20 Squats</option></select>
-        <button class="btn-p" style="background: var(--home);" onclick="addQuick()">+</button>
+        <div class="card"><label><input type="checkbox" id="v-toggle" onchange="toggleVacation()"> 🌴 Vakantiemodus</label></div>
+        <div id="planner-inputs"></div>
+        <button class="btn-p" onclick="savePlan()">OPSLAAN & SYNC</button>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="nav('pet', this)"><div>🐾</div>Home</div>
         <div class="nav-item" onclick="nav('tasks', this)"><div>✅</div>Taken</div>
+        <div class="nav-item" onclick="nav('shop', this)"><div>🛍️</div>Shop</div>
         <div class="nav-item" onclick="nav('planner', this)"><div>📅</div>Planner</div>
         <div class="nav-item" onclick="logout()"><div>🚪</div>Uit</div>
     </div>
@@ -93,18 +95,22 @@
     const db = getFirestore(app);
 
     const dagen = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
-    let state = { coins: 100, vacation: false, schedule: { "Maandag": [], "Dinsdag": [], "Woensdag": [], "Donderdag": [], "Vrijdag": [], "Zaterdag": [], "Zondag": [] }, completed: [] };
+    const shopIcons = ["🎩","👑","🕶️","🎀","🚀","⚽","💎","🍕","🎸","🔥","🧢","👒","🎓","🧣","💍","🎈"];
+    const shopItems = shopIcons.map((icon, i) => ({ id: i, icon: icon, price: (i + 1) * 20 }));
+
+    let state = { coins: 100, vacation: false, inventory: [], currentAcc: "", schedule: { "Maandag":["Bed opmaken"], "Dinsdag":["Afwassen"], "Woensdag":["Wandelen"], "Donderdag":["Sporten"], "Vrijdag":["Opruimen"], "Zaterdag":["Rust"], "Zondag":["Planten"] }, completed: [] };
 
     window.nav = (id, el) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('page-'+id).classList.add('active');
         if(el) el.classList.add('active');
+        render();
     };
 
     window.handleAuth = async () => {
         const e = document.getElementById('email').value, p = document.getElementById('password').value;
-        try { await signInWithEmailAndPassword(auth, e, p); } catch { await createUserWithEmailAndPassword(auth, e, p); }
+        try { await signInWithEmailAndPassword(auth, e, p); } catch { await createUserWithEmailAndPassword(auth, e, p); await sync(); }
     };
 
     window.logout = () => signOut(auth).then(() => location.reload());
@@ -117,60 +123,75 @@
         }
     });
 
-    window.toggleVacation = () => { state.vacation = document.getElementById('v-toggle').checked; sync(); };
-
-    window.savePlan = () => {
+    window.savePlan = async () => {
         dagen.forEach(d => {
-            const input = document.getElementById('input-'+d).value;
-            state.schedule[d] = input.split(',').map(s => s.trim()).filter(s => s !== "");
+            const v = document.getElementById('input-'+d).value;
+            state.schedule[d] = v.split(',').map(s => s.trim()).filter(s => s !== "");
         });
-        sync();
-        alert("Schema opgeslagen!");
+        await sync();
+        alert("Plan gesynchroniseerd!");
     };
 
+    window.buy = (id) => {
+        const item = shopItems[id];
+        if(state.inventory.includes(id)) state.currentAcc = (state.currentAcc === item.icon) ? "" : item.icon;
+        else if(state.coins >= item.price) { state.coins -= item.price; state.inventory.push(id); state.currentAcc = item.icon; }
+        sync();
+    };
+
+    window.completeTask = (t) => {
+        const key = t + new Date().toDateString();
+        if(!state.completed.includes(key)) {
+            state.completed.push(key);
+            state.coins += 25;
+            sync();
+        }
+    };
+
+    window.toggleVacation = () => { state.vacation = document.getElementById('v-toggle').checked; sync(); };
     async function sync() { if(auth.currentUser) await setDoc(doc(db, "users", auth.currentUser.uid), state); }
 
     function render() {
-        document.querySelectorAll('.coins').forEach(el => el.innerText = state.coins);
-        document.getElementById('vacation-banner').style.display = state.vacation ? "block" : "none";
+        document.querySelectorAll('.coin-display').forEach(el => el.innerText = state.coins);
         document.getElementById('v-toggle').checked = state.vacation;
+        document.getElementById('pet-main').innerText = ["🥚", "🐣", "🐥", "🐔"][Math.min(Math.floor(state.coins/200), 3)];
+        document.getElementById('pet-acc-view').innerText = state.currentAcc || "";
 
-        // Render Planner
-        const pList = document.getElementById('planner-list');
-        if(pList.innerHTML === "") {
+        // Planner
+        const pIn = document.getElementById('planner-inputs');
+        if(pIn.innerHTML === "") {
             dagen.forEach(d => {
-                pList.innerHTML += `<div class="day-box">
-                    <span class="day-name">${d}</span>
-                    <input type="text" id="input-${d}" placeholder="Taak 1, Taak 2..." value="${state.schedule[d].join(', ')}">
-                </div>`;
+                pIn.innerHTML += `<div class="card"><b>${d}</b><input type="text" id="input-${d}" value="${state.schedule[d].join(', ')}"></div>`;
             });
         }
 
-        // Render Today
-        const todayName = dagen[(new Date().getDay() + 6) % 7];
-        document.getElementById('current-day-title').innerText = "Taken voor " + todayName;
-        const tList = document.getElementById('today-list');
-        tList.innerHTML = "";
-        state.schedule[todayName].forEach(t => {
-            const done = state.completed.includes(t + new Date().toDateString());
-            tList.innerHTML += `<div class="card">
-                <input type="checkbox" ${done?'checked disabled':''} onchange="complete('${t}')"> ${t}
+        // Shop
+        const grid = document.getElementById('shop-grid');
+        grid.innerHTML = "";
+        shopItems.forEach(item => {
+            const owned = state.inventory.includes(item.id);
+            grid.innerHTML += `<div class="shop-card ${owned?'owned':''}" onclick="buy(${item.id})">
+                <span style="font-size:25px">${item.icon}</span><br>
+                <small>${owned?'BEZIT':'💰'+item.price}</small>
             </div>`;
         });
+
+        // Today
+        const tName = dagen[(new Date().getDay() + 6) % 7];
+        document.getElementById('day-title').innerText = "Taken voor " + tName;
+        const tList = document.getElementById('today-list');
+        tList.innerHTML = "";
+        if(state.vacation) tList.innerHTML = "🌴 Vakantiemodus: Geen verplichtingen!";
+        else {
+            (state.schedule[tName] || []).forEach(t => {
+                const done = state.completed.includes(t + new Date().toDateString());
+                tList.innerHTML += `<div class="card" onclick="completeTask('${t}')" style="display:flex; align-items:center; cursor:pointer; opacity:${done?0.6:1}">
+                    <div style="width:20px; height:20px; border:2px solid var(--p); border-radius:4px; margin-right:15px; background:${done?'var(--p)':'none'}"></div>
+                    <span style="${done?'text-decoration:line-through':''}">${t}</span>
+                </div>`;
+            });
+        }
     }
-
-    window.complete = (t) => {
-        state.completed.push(t + new Date().toDateString());
-        state.coins += 20;
-        sync();
-    };
-
-    window.addQuick = () => {
-        const val = document.getElementById('quick-add').value;
-        const todayName = dagen[(new Date().getDay() + 6) % 7];
-        state.schedule[todayName].push(val);
-        sync();
-    };
 </script>
 </body>
 </html>
